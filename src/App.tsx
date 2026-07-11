@@ -1,54 +1,113 @@
 // src/App.tsx
-// [Echo] v0.1 骨架版
-// 第一階段:能跑起來、載入題庫、顯示題數 — 驗證環境正常
+// [Echo] v0.3 能玩版 — 選單 / 答題 / 結算 / 題庫切換
+import { useEffect, useState, useMemo } from 'react';
+import type { QuestionBank, Question } from './types/bank';
+import { useGame, type Mode } from './lib/useGame';
+import { loadMistakes } from './lib/storage';
+import { Menu } from './components/Menu';
+import { Quiz } from './components/Quiz';
+import { Result } from './components/Result';
+import { BankPicker } from './components/BankPicker';
 
-import { useEffect, useState } from 'react';
-import type { QuestionBank } from './types/bank';
+type View = 'loading' | 'menu' | 'quiz' | 'result';
 
 export const App = () => {
   const [bank, setBank] = useState<QuestionBank | null>(null);
-  const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [view, setView] = useState<View>('loading');
+  const [showPicker, setShowPicker] = useState(false);
+  const [mistakeCount, setMistakeCount] = useState(0);
 
-  // 載入預設題庫(之後第二階段會換成「題庫選擇器」)
+  // 載入預設題庫
   useEffect(() => {
     fetch('/banks/ipas_bank.json')
-      .then(r => {
-        if (!r.ok) throw new Error(`載入失敗 (${r.status})`);
-        return r.json();
-      })
-      .then((data: QuestionBank) => setBank(data))
-      .catch(e => setError(e.message));
+      .then(r => { if (!r.ok) throw new Error(`載入失敗 (${r.status})`); return r.json(); })
+      .then((data: QuestionBank) => { setBank(data); setView('menu'); })
+      .catch(e => setLoadError(e.message));
   }, []);
 
-  // 動態標題:Echo · {題庫名}
   const title = bank ? `Echo · ${bank.displayName}` : 'Echo';
   useEffect(() => { document.title = title; }, [title]);
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-8">
-      <h1 className="text-4xl font-black tracking-[0.3em]">
-        Echo{bank && <span className="text-parchment/40 font-normal text-2xl"> · {bank.displayName}</span>}
-      </h1>
+  // 錯題數(切題庫時更新)
+  useEffect(() => {
+    if (bank) setMistakeCount(loadMistakes(bank.bankId).length);
+  }, [bank, view]);
 
-      {error && (
-        <p className="text-red-400 text-sm">題庫載入失敗:{error}</p>
-      )}
-
-      {bank && (
-        <div className="text-center space-y-2">
-          <p className="text-parchment/60 text-sm">{bank.name}</p>
-          <p className="text-2xl font-mono font-bold">{bank.questions.length} 題已就緒</p>
-          <p className="text-parchment/40 text-xs">{bank.description}</p>
-        </div>
-      )}
-
-      {!bank && !error && (
-        <p className="text-parchment/40 text-sm animate-pulse">載入題庫中…</p>
-      )}
-
-      <p className="text-parchment/20 text-[10px] tracking-widest mt-8">
-        v0.1 骨架版 · 環境驗證用
-      </p>
+  if (loadError) return (
+    <div className="min-h-screen flex items-center justify-center p-8 text-center">
+      <p className="text-red-400 text-sm">題庫載入失敗:{loadError}</p>
     </div>
   );
+  if (!bank) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-parchment/40 text-sm animate-pulse">載入中…</p>
+    </div>
+  );
+
+  return <GameShell
+    bank={bank}
+    view={view} setView={setView}
+    showPicker={showPicker} setShowPicker={setShowPicker}
+    mistakeCount={mistakeCount}
+    onPickBank={(b) => { setBank(b); setShowPicker(false); setView('menu'); }}
+  />;
 };
+
+// 把遊戲邏輯獨立成一層,確保 useGame 綁定當前 bank
+function GameShell({
+  bank, view, setView, showPicker, setShowPicker, mistakeCount, onPickBank,
+}: {
+  bank: QuestionBank;
+  view: View; setView: (v: View) => void;
+  showPicker: boolean; setShowPicker: (b: boolean) => void;
+  mistakeCount: number;
+  onPickBank: (b: QuestionBank) => void;
+}) {
+  const game = useGame(bank);
+  const [toast, setToast] = useState('');
+
+  const mistakeQuestions: Question[] = useMemo(() => {
+    const ids = new Set(loadMistakes(bank.bankId).map(m => m.id));
+    return bank.questions.filter(q => ids.has(q.id));
+  }, [bank]);
+
+  const handleStart = (m: Mode) => {
+    const filters = { subject: null, category: null }; // 篩選 UI 待第五階段補
+    const res = game.start(m, filters, m === 'mistake' ? mistakeQuestions : undefined);
+    if (!res.ok) { setToast(res.msg ?? '無法開始'); setTimeout(() => setToast(''), 2000); return; }
+    setView('quiz');
+  };
+
+  // 遊戲結束自動切到結算
+  useEffect(() => {
+    if (view === 'quiz' && game.finished) setView('result');
+  }, [game.finished, view, setView]);
+
+  return (
+    <>
+      {view === 'menu' && (
+        <Menu bank={bank} mistakeCount={mistakeCount}
+          onStart={handleStart} onOpenBankPicker={() => setShowPicker(true)} />
+      )}
+      {view === 'quiz' && (
+        <Quiz game={game} onQuit={() => { game.quit(); setView('menu'); }} />
+      )}
+      {view === 'result' && (
+        <Result game={game}
+          onReplay={() => { handleStart(game.mode); }}
+          onMenu={() => { game.quit(); setView('menu'); }} />
+      )}
+
+      {showPicker && (
+        <BankPicker current={bank} onPick={onPickBank} onClose={() => setShowPicker(false)} />
+      )}
+
+      {toast && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl bg-parchment text-ink text-sm font-bold tracking-widest z-50">
+          {toast}
+        </div>
+      )}
+    </>
+  );
+}

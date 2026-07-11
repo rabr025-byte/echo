@@ -20,3 +20,16 @@ body {
   @apply bg-ink text-parchment;
   font-family: system-ui, -apple-system, 'Noto Sans TC', sans-serif;
 }
+
+/* 遊戲動畫 */
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-50px); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
