@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 全域防選字(手機長按不觸發選字) */
+* {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 輸入框恢復可選字 */
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+  font-size: 16px; /* 防 iOS 縮放 */
+}
+
+body {
+  @apply bg-ink text-parchment;
+  font-family: system-ui, -apple-system, 'Noto Sans TC', sans-serif;
+}
