@@ -33,32 +33,32 @@ export const BankPicker = ({ current, onPick, onClose }: Props) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-ink/95 backdrop-blur-sm flex flex-col justify-end">
-      <div className="max-w-md mx-auto w-full bg-ink border-t border-parchment/15 rounded-t-3xl p-6 pb-12">
+    <div className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-sm flex flex-col justify-end">
+      <div className="max-w-md mx-auto w-full bg-bg border-t border-theme-border rounded-t-3xl p-6 pb-12">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-bold tracking-widest">選擇題庫</h2>
-          <button onClick={onClose} className="text-parchment/40 text-sm">關閉</button>
+          <button onClick={onClose} className="text-fg-dim text-sm">關閉</button>
         </div>
 
         {/* 目前題庫 */}
-        <div className="p-4 rounded-xl border border-parchment/25 bg-parchment/[0.04] mb-4">
-          <div className="text-xs text-parchment/40 tracking-widest mb-1">目前使用中</div>
+        <div className="p-4 rounded-xl border border-theme-border bg-card mb-4">
+          <div className="text-xs text-fg-dim tracking-widest mb-1">目前使用中</div>
           <div className="font-bold">{current.displayName}</div>
-          <div className="text-parchment/40 text-xs mt-1">{current.questions.length} 題</div>
+          <div className="text-fg-dim text-xs mt-1">{current.questions.length} 題</div>
         </div>
 
         {/* 上傳 */}
-        <label className="block w-full p-5 rounded-xl border border-dashed border-parchment/25 text-center cursor-pointer hover:border-parchment/40 transition-colors">
+        <label className="block w-full p-5 rounded-xl border border-dashed border-theme-border text-center cursor-pointer hover:border-accent/50 transition-colors">
           <input type="file" accept=".json,application/json" className="hidden"
             onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
           <div className="text-sm font-bold tracking-widest">上傳題庫檔案</div>
-          <div className="text-parchment/40 text-xs mt-1">選擇你自己的 .json 題庫</div>
+          <div className="text-fg-dim text-xs mt-1">選擇你自己的 .json 題庫</div>
         </label>
 
         {errors.length > 0 && (
-          <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
-            <div className="text-red-400 text-xs font-bold tracking-widest mb-2">題庫有問題,請修正:</div>
-            <ul className="text-red-300/80 text-xs space-y-1 max-h-40 overflow-y-auto">
+          <div className="mt-4 p-4 rounded-xl bg-bad/10 border border-bad/30">
+            <div className="text-bad text-xs font-bold tracking-widest mb-2">題庫有問題,請修正:</div>
+            <ul className="text-bad/80 text-xs space-y-1 max-h-40 overflow-y-auto">
               {errors.slice(0, 10).map((e, i) => <li key={i}>· {e}</li>)}
               {errors.length > 10 && <li>…還有 {errors.length - 10} 個問題</li>}
             </ul>

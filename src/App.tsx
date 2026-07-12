@@ -5,14 +5,17 @@ import type { QuestionBank, Question } from './types/bank';
 import { useGame, type Mode } from './lib/useGame';
 import { loadMistakes } from './lib/storage';
 import { loadSettings, saveSettings } from './lib/settings';
+import { applyTheme } from './lib/themes';
 import type { AISettings } from './lib/ai/types';
 import { getProvider } from './lib/ai';
-import { explainPrompt } from './lib/ai/prompts';
+import { explainPrompt, phantomPrompt } from './lib/ai/prompts';
+import { validateBank } from './lib/validateBank';
 import { Menu } from './components/Menu';
 import { Quiz } from './components/Quiz';
 import { Result } from './components/Result';
 import { BankPicker } from './components/BankPicker';
 import { Settings } from './components/Settings';
+import { AiGenerate } from './components/AiGenerate';
 
 type View = 'loading' | 'menu' | 'quiz' | 'result';
 
@@ -24,6 +27,9 @@ export const App = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState<AISettings>(loadSettings);
   const [mistakeCount, setMistakeCount] = useState(0);
+
+  // 套用主題(載入時 + 主題變更時)
+  useEffect(() => { applyTheme(settings.theme); }, [settings.theme]);
 
   // 載入預設題庫
   useEffect(() => {
@@ -43,12 +49,12 @@ export const App = () => {
 
   if (loadError) return (
     <div className="min-h-screen flex items-center justify-center p-8 text-center">
-      <p className="text-red-400 text-sm">題庫載入失敗:{loadError}</p>
+      <p className="text-bad text-sm">題庫載入失敗:{loadError}</p>
     </div>
   );
   if (!bank) return (
     <div className="min-h-screen flex items-center justify-center">
-      <p className="text-parchment/40 text-sm animate-pulse">載入中…</p>
+      <p className="text-fg-dim text-sm animate-pulse">載入中…</p>
     </div>
   );
 
@@ -80,8 +86,10 @@ function GameShell({
 }) {
   const game = useGame(bank);
   const [toast, setToast] = useState('');
+  const [showGen, setShowGen] = useState(false);
+  const [phantomLoading, setPhantomLoading] = useState(false);
 
-  // AI 詳解 handler(用當前 settings 的供應商與 key)
+  // AI 詳解 handler
   const handleAiExplain = async (q: { question: string; options: string[]; answerText: string }) => {
     const provider = getProvider(settings.provider);
     const prompt = explainPrompt(q.question, q.options, q.answerText);
@@ -93,11 +101,37 @@ function GameShell({
     return bank.questions.filter(q => ids.has(q.id));
   }, [bank]);
 
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2000); };
+
   const handleStart = (m: Mode) => {
+    if (m === 'phantom') { handlePhantom(); return; }
     const filters = { subject: null, category: null }; // 篩選 UI 待第五階段補
     const res = game.start(m, filters, m === 'mistake' ? mistakeQuestions : undefined);
-    if (!res.ok) { setToast(res.msg ?? '無法開始'); setTimeout(() => setToast(''), 2000); return; }
+    if (!res.ok) { showToast(res.msg ?? '無法開始'); return; }
     setView('quiz');
+  };
+
+  // AI 幻影:即時生一題來考
+  const handlePhantom = async () => {
+    if (!settings.apiKey) { showToast('請先到設定填入 API Key'); return; }
+    setPhantomLoading(true);
+    try {
+      const provider = getProvider(settings.provider);
+      const raw = await provider.generate(phantomPrompt(bank.displayName, settings.genDifficulty), settings.apiKey);
+      let t = raw.trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '');
+      const s = t.indexOf('{'), e = t.lastIndexOf('}');
+      if (s >= 0 && e > s) t = t.slice(s, e + 1);
+      const q = JSON.parse(t);
+      const bankCheck = validateBank({ bankId: 'phantom', displayName: 'x', name: 'x', questions: [q] });
+      if (!bankCheck.ok) { showToast('AI 生題失敗,請再試一次'); return; }
+      const res = game.start('phantom', { subject: null, category: null }, [q]);
+      if (!res.ok) { showToast(res.msg ?? '無法開始'); return; }
+      setView('quiz');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'AI 生題失敗');
+    } finally {
+      setPhantomLoading(false);
+    }
   };
 
   // 遊戲結束自動切到結算
@@ -109,9 +143,12 @@ function GameShell({
     <>
       {view === 'menu' && (
         <Menu bank={bank} mistakeCount={mistakeCount}
+          hasApiKey={!!settings.apiKey}
+          phantomLoading={phantomLoading}
           onStart={handleStart}
           onOpenBankPicker={() => setShowPicker(true)}
-          onOpenSettings={() => setShowSettings(true)} />
+          onOpenSettings={() => setShowSettings(true)}
+          onOpenAiGenerate={() => setShowGen(true)} />
       )}
       {view === 'quiz' && (
         <Quiz game={game}
@@ -132,8 +169,14 @@ function GameShell({
         <Settings settings={settings} onSave={onSaveSettings} onClose={() => setShowSettings(false)} />
       )}
 
+      {showGen && (
+        <AiGenerate settings={settings}
+          onGenerated={(b) => { setShowGen(false); onPickBank(b); }}
+          onClose={() => setShowGen(false)} />
+      )}
+
       {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl bg-parchment text-ink text-sm font-bold tracking-widest z-50">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl bg-accent text-accent-fg text-sm font-bold tracking-widest z-50">
           {toast}
         </div>
       )}

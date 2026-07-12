@@ -42,7 +42,7 @@ export const Quiz = ({ game, onQuit, onAiExplain }: Props) => {
       <div className="fixed inset-0 pointer-events-none z-50">
         {floats.map(f => (
           <div key={f.id}
-            className={`absolute font-black text-xl animate-[floatUp_1s_ease-out_forwards] ${f.kind === 'good' ? 'text-emerald-400' : 'text-red-400'}`}
+            className={`absolute font-black text-xl animate-[floatUp_1s_ease-out_forwards] ${f.kind === 'good' ? 'text-good' : 'text-bad'}`}
             style={{ left: f.x, top: f.y }}>
             {f.text}
           </div>
@@ -51,23 +51,23 @@ export const Quiz = ({ game, onQuit, onAiExplain }: Props) => {
 
       {/* 頂部:HP + 退出 */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="flex-1 h-2.5 bg-parchment/10 rounded-full overflow-hidden">
-          <div className="h-full bg-emerald-500 transition-all duration-300 rounded-full"
+        <div className="flex-1 h-2.5 bg-accent/10 rounded-full overflow-hidden">
+          <div className="h-full bg-good transition-all duration-300 rounded-full"
             style={{ width: `${hpPct}%` }} />
         </div>
-        <button onClick={onQuit} className="text-parchment/40 text-xs tracking-widest">結束</button>
+        <button onClick={onQuit} className="text-fg-dim text-xs tracking-widest">結束</button>
       </div>
 
       {/* 進度 + combo + 分數 */}
-      <div className="flex justify-between items-center text-xs text-parchment/40 mb-6 tabular-nums">
+      <div className="flex justify-between items-center text-xs text-fg-dim mb-6 tabular-nums">
         <span>{currentIdx + 1} / {questions.length}</span>
-        {combo > 1 && <span className="text-amber-400 font-bold">{combo} COMBO</span>}
+        {combo > 1 && <span className="text-combo font-bold">{combo} COMBO</span>}
         <span className="font-mono">{points} 分</span>
       </div>
 
       {/* 題目 */}
       <div className="mb-6">
-        {current.source && <div className="text-parchment/30 text-[10px] mb-2 tracking-wider">{current.source}</div>}
+        {current.source && <div className="text-fg-dim text-[10px] mb-2 tracking-wider">{current.source}</div>}
         <p className="text-lg leading-relaxed font-medium">{current.question}</p>
       </div>
 
@@ -76,11 +76,11 @@ export const Quiz = ({ game, onQuit, onAiExplain }: Props) => {
         {current.options.map((opt, i) => {
           const isCorrect = i === current.answer;
           const isPicked = i === selected;
-          let cls = 'border-parchment/10 bg-parchment/[0.03]';
+          let cls = 'border-theme-border bg-card';
           if (answered) {
-            if (isCorrect) cls = 'border-emerald-500/60 bg-emerald-500/10';
-            else if (isPicked) cls = 'border-red-500/60 bg-red-500/10';
-            else cls = 'border-parchment/5 bg-transparent opacity-50';
+            if (isCorrect) cls = 'border-good/60 bg-good/10';
+            else if (isPicked) cls = 'border-bad/60 bg-bad/10';
+            else cls = 'border-theme-border bg-transparent opacity-50';
           }
           return (
             <button key={i} disabled={answered}
@@ -96,9 +96,9 @@ export const Quiz = ({ game, onQuit, onAiExplain }: Props) => {
       {answered && (
         <div className="mt-6">
           {current.explanation && (
-            <div className="p-4 rounded-xl bg-parchment/[0.04] border border-parchment/10 mb-4">
-              <div className="text-parchment/40 text-[10px] tracking-widest mb-1">詳解</div>
-              <p className="text-sm text-parchment/70 leading-relaxed">{current.explanation}</p>
+            <div className="p-4 rounded-xl bg-card border border-theme-border mb-4">
+              <div className="text-fg-dim text-[10px] tracking-widest mb-1">詳解</div>
+              <p className="text-sm text-fg/70 leading-relaxed">{current.explanation}</p>
             </div>
           )}
 
@@ -107,27 +107,27 @@ export const Quiz = ({ game, onQuit, onAiExplain }: Props) => {
             <div className="mb-4">
               {!aiText && !aiLoading && (
                 <button onClick={handleAi}
-                  className="w-full py-3 rounded-xl border border-parchment/15 text-parchment/60 text-sm font-bold tracking-widest active:scale-[0.98] transition-all">
+                  className="w-full py-3 rounded-xl border border-theme-border text-fg-dim text-sm font-bold tracking-widest active:scale-[0.98] transition-all">
                   ✦ AI 解讀這題
                 </button>
               )}
               {aiLoading && (
-                <div className="w-full py-3 text-center text-parchment/40 text-sm animate-pulse">AI 思考中…</div>
+                <div className="w-full py-3 text-center text-fg-dim text-sm animate-pulse">AI 思考中…</div>
               )}
               {aiError && (
-                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs">{aiError}</div>
+                <div className="p-3 rounded-xl bg-bad/10 border border-bad/30 text-bad text-xs">{aiError}</div>
               )}
               {aiText && (
-                <div className="p-4 rounded-xl bg-parchment/[0.04] border border-parchment/20">
-                  <div className="text-parchment/40 text-[10px] tracking-widest mb-1">✦ AI 解讀</div>
-                  <p className="text-sm text-parchment/80 leading-relaxed whitespace-pre-wrap">{aiText}</p>
+                <div className="p-4 rounded-xl bg-card border border-theme-border">
+                  <div className="text-fg-dim text-[10px] tracking-widest mb-1">✦ AI 解讀</div>
+                  <p className="text-sm text-fg/80 leading-relaxed whitespace-pre-wrap">{aiText}</p>
                 </div>
               )}
             </div>
           )}
 
           <button onClick={game.next}
-            className="w-full py-4 rounded-xl bg-parchment text-ink font-bold tracking-widest active:scale-[0.98] transition-all">
+            className="w-full py-4 rounded-xl bg-accent text-accent-fg font-bold tracking-widest active:scale-[0.98] transition-all">
             {currentIdx < questions.length - 1 ? '下一題' : '看結果'}
           </button>
         </div>

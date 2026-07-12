@@ -2,29 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 全域防選字(手機長按不觸發選字) */
+/* 預設主題變數(暗夜),避免載入瞬間無色 */
+:root {
+  --bg: #0d0f12;
+  --fg: #e8e2d6;
+  --fg-dim: rgba(232,226,214,0.45);
+  --card: rgba(232,226,214,0.04);
+  --border: rgba(232,226,214,0.12);
+  --accent: #d4af37;
+  --accent-fg: #0d0f12;
+  --good: #34d399;
+  --bad: #f87171;
+  --combo: #fbbf24;
+  --glow: 0.5;
+}
+
 * {
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* 輸入框恢復可選字 */
 input, textarea {
   -webkit-user-select: text;
   user-select: text;
-  font-size: 16px; /* 防 iOS 縮放 */
+  font-size: 16px;
 }
 
 body {
-  @apply bg-ink text-parchment;
+  background: var(--bg);
+  color: var(--fg);
   font-family: system-ui, -apple-system, 'Noto Sans TC', sans-serif;
+  transition: background 0.4s ease, color 0.4s ease;
 }
 
 /* 遊戲動畫 */
 @keyframes floatUp {
-  0% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-50px); }
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-50px) scale(1.2); }
 }
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
@@ -32,4 +47,9 @@ body {
   40% { transform: translateX(8px); }
   60% { transform: translateX(-5px); }
   80% { transform: translateX(5px); }
+}
+
+/* 光暈工具類(依主題 --glow 強度) */
+.glow-accent {
+  box-shadow: 0 0 calc(20px * var(--glow)) color-mix(in srgb, var(--accent) 60%, transparent);
 }

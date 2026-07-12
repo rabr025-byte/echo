@@ -15,6 +15,7 @@ export interface AISettings {
   genDifficulty: 'easy' | 'medium' | 'hard';
   sfxEnabled: boolean;
   vibrateEnabled: boolean;
+  theme: 'midnight' | 'paper' | 'neon';
 }
 
 export const DEFAULT_SETTINGS: AISettings = {
@@ -24,4 +25,5 @@ export const DEFAULT_SETTINGS: AISettings = {
   genDifficulty: 'medium',
   sfxEnabled: true,
   vibrateEnabled: true,
+  theme: 'midnight',
 };

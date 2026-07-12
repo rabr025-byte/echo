@@ -3,10 +3,18 @@ export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
-      // Echo 色彩系統之後在第五階段(UI 重建)正式定案,先放基礎值
+      // 顏色對應 CSS 變數(見 src/lib/themes.ts),切主題自動套用
       colors: {
-        ink: '#0d0f12',       // 主背景
-        parchment: '#e8e2d6', // 主文字
+        bg: 'var(--bg)',
+        fg: 'var(--fg)',
+        'fg-dim': 'var(--fg-dim)',
+        card: 'var(--card)',
+        'theme-border': 'var(--border)',
+        accent: 'var(--accent)',
+        'accent-fg': 'var(--accent-fg)',
+        good: 'var(--good)',
+        bad: 'var(--bad)',
+        combo: 'var(--combo)',
       },
     },
   },

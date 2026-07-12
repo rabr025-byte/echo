@@ -6,7 +6,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import type { Question, QuestionBank } from '../types/bank';
 import { saveStat, addMistake, addRecord } from './storage';
 
-export type Mode = 'normal' | 'hard' | 'speed' | 'sudden_death' | 'mistake';
+export type Mode = 'normal' | 'hard' | 'speed' | 'sudden_death' | 'mistake' | 'phantom';
 
 export interface FloatText { id: number; x: number; y: number; text: string; kind: 'good' | 'bad'; }
 
@@ -61,11 +61,14 @@ export function useGame(bank: QuestionBank) {
   const start = useCallback((
     m: Mode,
     filters: { subject: number | null; category: number | null },
-    mistakePool?: Question[],
+    externalQuestions?: Question[],
   ) => {
     let qs: Question[];
     if (m === 'mistake') {
-      qs = shuffle(mistakePool ?? []);
+      qs = shuffle(externalQuestions ?? []);
+    } else if (m === 'phantom') {
+      // AI 幻影:題目由外部(AI)提供
+      qs = externalQuestions ?? [];
     } else {
       const pool = buildPool(filters);
       if (pool.length === 0) return { ok: false, msg: '這個分類沒有題目' };

@@ -19,31 +19,31 @@ export const Result = ({ game, onReplay, onMenu }: Props) => {
   return (
     <div className="min-h-screen max-w-md mx-auto w-full px-6 py-12 flex flex-col items-center justify-center gap-8">
       <div className="text-center">
-        <div className="text-parchment/40 text-xs tracking-[0.3em] uppercase mb-2">
+        <div className="text-fg-dim text-xs tracking-[0.3em] uppercase mb-2">
           {survived ? '完成' : '陣亡'}
         </div>
         <div className="text-6xl font-black tabular-nums">{pct}<span className="text-2xl">%</span></div>
-        <div className="text-parchment/50 text-sm mt-2">答對 {score} / {total} 題</div>
+        <div className="text-fg-dim text-sm mt-2">答對 {score} / {total} 題</div>
       </div>
 
       <div className="w-full grid grid-cols-2 gap-3">
-        <div className="p-4 rounded-xl bg-parchment/[0.04] border border-parchment/10 text-center">
-          <div className="text-parchment/40 text-[10px] tracking-widest mb-1">得分</div>
+        <div className="p-4 rounded-xl bg-card border border-theme-border text-center">
+          <div className="text-fg-dim text-[10px] tracking-widest mb-1">得分</div>
           <div className="text-xl font-mono font-bold">{points}</div>
         </div>
-        <div className="p-4 rounded-xl bg-parchment/[0.04] border border-parchment/10 text-center">
-          <div className="text-parchment/40 text-[10px] tracking-widest mb-1">用時</div>
+        <div className="p-4 rounded-xl bg-card border border-theme-border text-center">
+          <div className="text-fg-dim text-[10px] tracking-widest mb-1">用時</div>
           <div className="text-xl font-mono font-bold">{fmtTime(timer)}</div>
         </div>
       </div>
 
       <div className="w-full flex flex-col gap-3">
         <button onClick={onReplay}
-          className="w-full py-4 rounded-xl bg-parchment text-ink font-bold tracking-widest active:scale-[0.98] transition-all">
+          className="w-full py-4 rounded-xl bg-accent text-accent-fg font-bold tracking-widest active:scale-[0.98] transition-all">
           再來一次
         </button>
         <button onClick={onMenu}
-          className="w-full py-4 rounded-xl border border-parchment/15 text-parchment/70 font-bold tracking-widest active:scale-[0.98] transition-all">
+          className="w-full py-4 rounded-xl border border-theme-border text-fg/70 font-bold tracking-widest active:scale-[0.98] transition-all">
           回選單
         </button>
       </div>
