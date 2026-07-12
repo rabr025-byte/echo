@@ -8,6 +8,7 @@ interface Props {
   mistakeCount: number;
   onStart: (m: Mode) => void;
   onOpenBankPicker: () => void;
+  onOpenSettings: () => void;
 }
 
 const MODES: { id: Mode; label: string; desc: string }[] = [
@@ -17,8 +18,14 @@ const MODES: { id: Mode; label: string; desc: string }[] = [
   { id: 'sudden_death', label: '極限', desc: '答錯即結束' },
 ];
 
-export const Menu = ({ bank, mistakeCount, onStart, onOpenBankPicker }: Props) => (
+export const Menu = ({ bank, mistakeCount, onStart, onOpenBankPicker, onOpenSettings }: Props) => (
   <div className="min-h-screen flex flex-col items-center px-6 py-12 max-w-md mx-auto w-full">
+    <div className="w-full flex justify-end mb-2">
+      <button onClick={onOpenSettings}
+        className="text-parchment/40 text-sm tracking-widest hover:text-parchment/70 transition-colors">
+        設定
+      </button>
+    </div>
     <div className="text-center mb-2">
       <h1 className="text-3xl font-black tracking-[0.3em]">Echo</h1>
       <button onClick={onOpenBankPicker}

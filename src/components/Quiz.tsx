@@ -1,17 +1,40 @@
 // src/components/Quiz.tsx
 // [Echo] 答題畫面 — HP、combo、浮動文字、答對錯回饋
 import { useGame } from '../lib/useGame';
+import { useState } from 'react';
 
 interface Props {
   game: ReturnType<typeof useGame>;
   onQuit: () => void;
+  onAiExplain?: (q: { question: string; options: string[]; answerText: string }) => Promise<string>;
 }
 
-export const Quiz = ({ game, onQuit }: Props) => {
+export const Quiz = ({ game, onQuit, onAiExplain }: Props) => {
   const { current, currentIdx, questions, selected, answered, hp, combo, points, floats, shake, HP_MAX } = game;
+  const [aiText, setAiText] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
+
   if (!current) return null;
 
   const hpPct = Math.max(0, (hp / HP_MAX) * 100);
+
+  const handleAi = async () => {
+    if (!onAiExplain) return;
+    setAiLoading(true); setAiError(''); setAiText('');
+    try {
+      const text = await onAiExplain({
+        question: current.question,
+        options: current.options,
+        answerText: current.options[current.answer],
+      });
+      setAiText(text);
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : 'AI 解讀失敗');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   return (
     <div className={`min-h-screen max-w-md mx-auto w-full px-5 py-6 flex flex-col ${shake ? 'animate-[shake_0.4s]' : ''}`}>
@@ -78,6 +101,31 @@ export const Quiz = ({ game, onQuit }: Props) => {
               <p className="text-sm text-parchment/70 leading-relaxed">{current.explanation}</p>
             </div>
           )}
+
+          {/* AI 解讀 */}
+          {onAiExplain && (
+            <div className="mb-4">
+              {!aiText && !aiLoading && (
+                <button onClick={handleAi}
+                  className="w-full py-3 rounded-xl border border-parchment/15 text-parchment/60 text-sm font-bold tracking-widest active:scale-[0.98] transition-all">
+                  ✦ AI 解讀這題
+                </button>
+              )}
+              {aiLoading && (
+                <div className="w-full py-3 text-center text-parchment/40 text-sm animate-pulse">AI 思考中…</div>
+              )}
+              {aiError && (
+                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs">{aiError}</div>
+              )}
+              {aiText && (
+                <div className="p-4 rounded-xl bg-parchment/[0.04] border border-parchment/20">
+                  <div className="text-parchment/40 text-[10px] tracking-widest mb-1">✦ AI 解讀</div>
+                  <p className="text-sm text-parchment/80 leading-relaxed whitespace-pre-wrap">{aiText}</p>
+                </div>
+              )}
+            </div>
+          )}
+
           <button onClick={game.next}
             className="w-full py-4 rounded-xl bg-parchment text-ink font-bold tracking-widest active:scale-[0.98] transition-all">
             {currentIdx < questions.length - 1 ? '下一題' : '看結果'}

@@ -4,10 +4,15 @@ import { useEffect, useState, useMemo } from 'react';
 import type { QuestionBank, Question } from './types/bank';
 import { useGame, type Mode } from './lib/useGame';
 import { loadMistakes } from './lib/storage';
+import { loadSettings, saveSettings } from './lib/settings';
+import type { AISettings } from './lib/ai/types';
+import { getProvider } from './lib/ai';
+import { explainPrompt } from './lib/ai/prompts';
 import { Menu } from './components/Menu';
 import { Quiz } from './components/Quiz';
 import { Result } from './components/Result';
 import { BankPicker } from './components/BankPicker';
+import { Settings } from './components/Settings';
 
 type View = 'loading' | 'menu' | 'quiz' | 'result';
 
@@ -16,6 +21,8 @@ export const App = () => {
   const [loadError, setLoadError] = useState('');
   const [view, setView] = useState<View>('loading');
   const [showPicker, setShowPicker] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState<AISettings>(loadSettings);
   const [mistakeCount, setMistakeCount] = useState(0);
 
   // 載入預設題庫
@@ -49,6 +56,9 @@ export const App = () => {
     bank={bank}
     view={view} setView={setView}
     showPicker={showPicker} setShowPicker={setShowPicker}
+    showSettings={showSettings} setShowSettings={setShowSettings}
+    settings={settings}
+    onSaveSettings={(s) => { setSettings(s); saveSettings(s); }}
     mistakeCount={mistakeCount}
     onPickBank={(b) => { setBank(b); setShowPicker(false); setView('menu'); }}
   />;
@@ -56,16 +66,27 @@ export const App = () => {
 
 // 把遊戲邏輯獨立成一層,確保 useGame 綁定當前 bank
 function GameShell({
-  bank, view, setView, showPicker, setShowPicker, mistakeCount, onPickBank,
+  bank, view, setView, showPicker, setShowPicker,
+  showSettings, setShowSettings, settings, onSaveSettings,
+  mistakeCount, onPickBank,
 }: {
   bank: QuestionBank;
   view: View; setView: (v: View) => void;
   showPicker: boolean; setShowPicker: (b: boolean) => void;
+  showSettings: boolean; setShowSettings: (b: boolean) => void;
+  settings: AISettings; onSaveSettings: (s: AISettings) => void;
   mistakeCount: number;
   onPickBank: (b: QuestionBank) => void;
 }) {
   const game = useGame(bank);
   const [toast, setToast] = useState('');
+
+  // AI 詳解 handler(用當前 settings 的供應商與 key)
+  const handleAiExplain = async (q: { question: string; options: string[]; answerText: string }) => {
+    const provider = getProvider(settings.provider);
+    const prompt = explainPrompt(q.question, q.options, q.answerText);
+    return provider.generate(prompt, settings.apiKey);
+  };
 
   const mistakeQuestions: Question[] = useMemo(() => {
     const ids = new Set(loadMistakes(bank.bankId).map(m => m.id));
@@ -88,10 +109,14 @@ function GameShell({
     <>
       {view === 'menu' && (
         <Menu bank={bank} mistakeCount={mistakeCount}
-          onStart={handleStart} onOpenBankPicker={() => setShowPicker(true)} />
+          onStart={handleStart}
+          onOpenBankPicker={() => setShowPicker(true)}
+          onOpenSettings={() => setShowSettings(true)} />
       )}
       {view === 'quiz' && (
-        <Quiz game={game} onQuit={() => { game.quit(); setView('menu'); }} />
+        <Quiz game={game}
+          onQuit={() => { game.quit(); setView('menu'); }}
+          onAiExplain={settings.apiKey ? handleAiExplain : undefined} />
       )}
       {view === 'result' && (
         <Result game={game}
@@ -101,6 +126,10 @@ function GameShell({
 
       {showPicker && (
         <BankPicker current={bank} onPick={onPickBank} onClose={() => setShowPicker(false)} />
+      )}
+
+      {showSettings && (
+        <Settings settings={settings} onSave={onSaveSettings} onClose={() => setShowSettings(false)} />
       )}
 
       {toast && (
