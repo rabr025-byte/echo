@@ -34,6 +34,7 @@ export function useGame(bank: QuestionBank) {
   const [score, setScore] = useState(0);
   const [hp, setHp] = useState(HP_MAX);
   const [combo, setCombo] = useState(0);
+  const [comboBurst, setComboBurst] = useState(0); // 里程碑信號:達 5/10/15... 連擊時 +1,Quiz 監聽放特效
   const [points, setPoints] = useState(0);
   const [timer, setTimer] = useState(0);
   const [floats, setFloats] = useState<FloatText[]>([]);
@@ -83,7 +84,7 @@ export function useGame(bank: QuestionBank) {
 
     setMode(m); setQuestions(qs);
     setCurrentIdx(0); setSelected(null); setAnswered(false);
-    setScore(0); setHp(HP_MAX); setCombo(0); setPoints(0);
+    setScore(0); setHp(HP_MAX); setCombo(0); setComboBurst(0); setPoints(0);
     setTimer(0); setFloats([]); setFinished(false);
     startedRef.current = true;
     return { ok: true };
@@ -119,7 +120,11 @@ export function useGame(bank: QuestionBank) {
       const pts = BASE_POINTS + bonus;
       setScore(s => s + 1);
       setPoints(p => p + pts);
-      setCombo(c => c + 1);
+      setCombo(c => {
+        const nc = c + 1;
+        if (nc > 0 && nc % 5 === 0) setComboBurst(b => b + 1); // 每 5 連觸發里程碑爆發
+        return nc;
+      });
       pushFloat(x, y, `+${pts}`, 'good');
       if (mode === 'speed') setTimeout(() => next(), 400);
     } else {
@@ -156,7 +161,7 @@ export function useGame(bank: QuestionBank) {
 
   return {
     mode, questions, currentIdx, selected, answered,
-    score, hp, combo, points, timer, floats, shake, finished,
+    score, hp, combo, comboBurst, points, timer, floats, shake, finished,
     current: questions[currentIdx],
     start, answer, next, quit,
     HP_MAX,

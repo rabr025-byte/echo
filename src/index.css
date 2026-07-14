@@ -53,3 +53,61 @@ body {
 .glow-accent {
   box-shadow: 0 0 calc(20px * var(--glow)) color-mix(in srgb, var(--accent) 60%, transparent);
 }
+
+/* ─────────────────────────────────────────
+   第五階段:多巴胺動效庫
+   核心哲學:平常克制,觸發時爆發
+   ───────────────────────────────────────── */
+
+/* 分數彈跳(答對時數字往上彈) */
+@keyframes popBounce {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* 爆發浮字(答對綠字,往上飄且放大消失) */
+@keyframes burstUp {
+  0% { opacity: 0; transform: translateY(0) scale(0.6); }
+  15% { opacity: 1; transform: translateY(-8px) scale(1.3); }
+  100% { opacity: 0; transform: translateY(-70px) scale(1); }
+}
+
+/* combo 數字脈動(連擊越高越明顯) */
+@keyframes comboPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* 里程碑閃光(5連/10連的全畫面爆發) */
+@keyframes flashBurst {
+  0% { opacity: 0; }
+  30% { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+
+/* 粒子飛散 */
+@keyframes particleFly {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3); }
+}
+
+/* 卡片入場(選單卡片依序浮現) */
+@keyframes cardRise {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* 主標題微呼吸光暈 */
+@keyframes titleGlow {
+  0%, 100% { text-shadow: 0 0 calc(16px * var(--glow)) color-mix(in srgb, var(--accent) 50%, transparent); }
+  50% { text-shadow: 0 0 calc(28px * var(--glow)) color-mix(in srgb, var(--accent) 80%, transparent); }
+}
+
+.animate-pop { animation: popBounce 0.4s cubic-bezier(0.2, 1.4, 0.4, 1) forwards; }
+.animate-burst { animation: burstUp 1s ease-out forwards; }
+.animate-combo-pulse { animation: comboPulse 0.3s ease-out; }
+.animate-flash { animation: flashBurst 0.5s ease-out forwards; }
+.animate-particle { animation: particleFly 0.8s ease-out forwards; }
+.animate-title-glow { animation: titleGlow 3s ease-in-out infinite; }
+.card-rise { animation: cardRise 0.4s ease-out backwards; }
