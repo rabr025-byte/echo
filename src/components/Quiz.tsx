@@ -7,11 +7,12 @@ interface Props {
   game: ReturnType<typeof useGame>;
   onQuit: () => void;
   onAiExplain?: (q: { question: string; options: string[]; answerText: string }) => Promise<string>;
+  devMode?: boolean;
 }
 
 interface Particle { id: number; dx: number; dy: number; }
 
-export const Quiz = ({ game, onQuit, onAiExplain }: Props) => {
+export const Quiz = ({ game, onQuit, onAiExplain, devMode }: Props) => {
   const { current, currentIdx, questions, selected, answered, hp, combo, comboBurst, points, floats, shake, HP_MAX } = game;
   const [aiText, setAiText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
@@ -40,7 +41,6 @@ export const Quiz = ({ game, onQuit, onAiExplain }: Props) => {
   useEffect(() => { if (combo > 0) setComboKey(k => k + 1); }, [combo]);
 
   if (!current) return null;
-  const hpPct = Math.max(0, (hp / HP_MAX) * 100);
 
   const handleAi = async () => {
     if (!onAiExplain) return;
@@ -80,23 +80,61 @@ export const Quiz = ({ game, onQuit, onAiExplain }: Props) => {
         ))}
       </div>
 
-      <div className="flex items-center gap-3 mb-4">
-        <div className="flex-1 h-2.5 bg-card rounded-full overflow-hidden">
-          <div className="h-full bg-good transition-all duration-300 rounded-full"
-            style={{ width: `${hpPct}%`, boxShadow: hpPct < 40 ? '0 0 8px var(--bad)' : 'none' }} />
+      {/* 連擊能量光框(combo 越高越亮) */}
+      {combo >= 3 && (
+        <div className="combo-vignette"
+          style={{ '--combo-glow': `${Math.min(combo * 12, 120)}`, '--combo-alpha': `${Math.min(combo * 6, 55)}` } as React.CSSProperties} />
+      )}
+
+      {/* combo 大字(畫面中上,每次答對重播彈出) */}
+      {combo > 1 && (
+        <div key={comboKey} className="fixed top-[16%] left-1/2 -translate-x-1/2 z-40 pointer-events-none animate-combo-slam">
+          <div className="text-center">
+            <span className="font-black tabular-nums"
+              style={{ color: 'var(--combo)', fontSize: `${Math.min(2 + combo * 0.15, 4)}rem`,
+                textShadow: `0 0 ${Math.min(combo * 3, 30)}px color-mix(in srgb, var(--combo) 80%, transparent)` }}>
+              {combo}
+            </span>
+            <span className="block text-[10px] font-bold tracking-[0.4em] -mt-1"
+              style={{ color: 'var(--combo)' }}>COMBO</span>
+          </div>
         </div>
-        <button onClick={onQuit} className="text-fg-dim text-xs tracking-widest active:scale-95">結束</button>
+      )}
+
+      {/* 頂部:愛心血量 + 退出 */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex gap-1.5">
+          {Array.from({ length: HP_MAX / 20 }).map((_, i) => {
+            const heartsLeft = Math.ceil(hp / 20);
+            const alive = i < heartsLeft;
+            const isLast = alive && heartsLeft === 1;
+            const justBroke = i === heartsLeft && answered; // 剛碎的那顆播碎裂
+            return (
+              <span key={`${i}-${alive}`}
+                className={`text-xl ${justBroke ? 'animate-heart-break' : isLast ? 'animate-heart-panic' : ''}`}
+                style={{
+                  color: alive ? 'var(--bad)' : 'color-mix(in srgb, var(--fg-dim) 35%, transparent)',
+                  filter: alive ? 'drop-shadow(0 0 4px color-mix(in srgb, var(--bad) 50%, transparent))' : 'none',
+                }}>
+                ♥
+              </span>
+            );
+          })}
+        </div>
+        <div className="flex items-center gap-3">
+          {devMode && !answered && (
+            <button
+              onClick={() => game.answer(current.answer, window.innerWidth / 2, window.innerHeight / 3)}
+              className="text-combo text-xs tracking-widest border border-theme-border rounded-lg px-2 py-1 active:scale-95">
+              ⚡自動答對
+            </button>
+          )}
+          <button onClick={onQuit} className="text-fg-dim text-xs tracking-widest active:scale-95">結束</button>
+        </div>
       </div>
 
       <div className="flex justify-between items-center text-xs text-fg-dim mb-6 tabular-nums">
         <span>{currentIdx + 1} / {questions.length}</span>
-        {combo > 1 && (
-          <span key={comboKey} className="font-black tracking-wide animate-combo-pulse"
-            style={{ color: 'var(--combo)', fontSize: `${Math.min(0.75 + combo * 0.03, 1.3)}rem`,
-              textShadow: `0 0 ${Math.min(combo * 2, 16)}px color-mix(in srgb, var(--combo) 70%, transparent)` }}>
-            {combo} COMBO
-          </span>
-        )}
         <span className="font-mono">{points} 分</span>
       </div>
 

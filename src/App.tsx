@@ -153,7 +153,8 @@ function GameShell({
       {view === 'quiz' && (
         <Quiz game={game}
           onQuit={() => { game.quit(); setView('menu'); }}
-          onAiExplain={settings.apiKey ? handleAiExplain : undefined} />
+          onAiExplain={settings.apiKey ? handleAiExplain : undefined}
+          devMode={settings.devMode} />
       )}
       {view === 'result' && (
         <Result game={game}

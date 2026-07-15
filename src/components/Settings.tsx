@@ -112,7 +112,7 @@ export const Settings = ({ settings, onSave, onClose }: Props) => {
 
         {/* 開關 */}
         <div className="flex flex-col gap-3 mb-6">
-          {([['sfxEnabled', '音效'], ['vibrateEnabled', '震動回饋']] as const).map(([k, label]) => (
+          {([['sfxEnabled', '音效'], ['vibrateEnabled', '震動回饋'], ['devMode', '測試模式(自動答對)']] as const).map(([k, label]) => (
             <div key={k} className="flex justify-between items-center">
               <span className="text-sm">{label}</span>
               <button onClick={() => update(k, !draft[k])}

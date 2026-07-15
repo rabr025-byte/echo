@@ -16,6 +16,7 @@ export interface AISettings {
   sfxEnabled: boolean;
   vibrateEnabled: boolean;
   theme: 'midnight' | 'paper' | 'neon';
+  devMode: boolean;   // 測試模式:答題頁出現自動答對按鈕
 }
 
 export const DEFAULT_SETTINGS: AISettings = {
@@ -26,4 +27,5 @@ export const DEFAULT_SETTINGS: AISettings = {
   sfxEnabled: true,
   vibrateEnabled: true,
   theme: 'midnight',
+  devMode: false,
 };
