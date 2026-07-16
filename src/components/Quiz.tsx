@@ -21,16 +21,20 @@ export const Quiz = ({ game, onQuit, onAiExplain, devMode }: Props) => {
   const [flash, setFlash] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
   const [comboKey, setComboKey] = useState(0);
+  const [hitPulse, setHitPulse] = useState(0);   // 答對全畫面脈衝
+  const [showCombo, setShowCombo] = useState(false); // combo 大字顯示中
   const lastBurst = useRef(0);
+  const comboTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (comboBurst > lastBurst.current) {
       lastBurst.current = comboBurst;
       setFlash(true);
       setTimeout(() => setFlash(false), 500);
-      const ps = Array.from({ length: 16 }, (_, i) => {
-        const angle = (Math.PI * 2 * i) / 16;
-        const dist = 80 + Math.random() * 60;
+      // 24 顆粒子,飛更遠
+      const ps = Array.from({ length: 24 }, (_, i) => {
+        const angle = (Math.PI * 2 * i) / 24;
+        const dist = 110 + Math.random() * 80;
         return { id: Date.now() + i, dx: Math.cos(angle) * dist, dy: Math.sin(angle) * dist };
       });
       setParticles(ps);
@@ -38,7 +42,16 @@ export const Quiz = ({ game, onQuit, onAiExplain, devMode }: Props) => {
     }
   }, [comboBurst]);
 
-  useEffect(() => { if (combo > 0) setComboKey(k => k + 1); }, [combo]);
+  // 每次答對:combo 大字爆出 + 全畫面脈衝(一擊一爆,0.9 秒後自動消失)
+  useEffect(() => {
+    if (combo > 0) {
+      setComboKey(k => k + 1);
+      setHitPulse(h => h + 1);
+      setShowCombo(true);
+      if (comboTimer.current) clearTimeout(comboTimer.current);
+      comboTimer.current = setTimeout(() => setShowCombo(false), 900);
+    }
+  }, [combo]);
 
   if (!current) return null;
 
@@ -58,6 +71,11 @@ export const Quiz = ({ game, onQuit, onAiExplain, devMode }: Props) => {
 
   return (
     <div className={`min-h-screen max-w-md mx-auto w-full px-5 py-6 flex flex-col ${shake ? 'animate-[shake_0.4s]' : ''}`}>
+      {/* 答對全畫面綠色脈衝 */}
+      {hitPulse > 0 && (
+        <div key={`pulse-${hitPulse}`} className="fixed inset-0 z-30 pointer-events-none animate-hit-pulse"
+          style={{ background: 'radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--good) 30%, transparent) 0%, transparent 65%)' }} />
+      )}
       {flash && (
         <div className="fixed inset-0 z-40 pointer-events-none animate-flash"
           style={{ background: 'radial-gradient(circle, color-mix(in srgb, var(--combo) 40%, transparent) 0%, transparent 70%)' }} />
@@ -86,17 +104,22 @@ export const Quiz = ({ game, onQuit, onAiExplain, devMode }: Props) => {
           style={{ '--combo-glow': `${Math.min(combo * 12, 120)}`, '--combo-alpha': `${Math.min(combo * 6, 55)}` } as React.CSSProperties} />
       )}
 
-      {/* combo 大字(畫面中上,每次答對重播彈出) */}
-      {combo > 1 && (
-        <div key={comboKey} className="fixed top-[16%] left-1/2 -translate-x-1/2 z-40 pointer-events-none animate-combo-slam">
-          <div className="text-center">
-            <span className="font-black tabular-nums"
-              style={{ color: 'var(--combo)', fontSize: `${Math.min(2 + combo * 0.15, 4)}rem`,
-                textShadow: `0 0 ${Math.min(combo * 3, 30)}px color-mix(in srgb, var(--combo) 80%, transparent)` }}>
+      {/* combo 大字(一擊一爆,答對彈出後自動淡出) */}
+      {combo > 1 && showCombo && (
+        <div key={comboKey} className="fixed top-[15%] left-1/2 z-40 pointer-events-none animate-combo-smash">
+          {/* 擴散光環 */}
+          <div className="absolute left-1/2 top-1/2 w-24 h-24 rounded-full border-2 animate-ring"
+            style={{ borderColor: 'var(--combo)' }} />
+          <div className="text-center relative">
+            <span className="font-black tabular-nums leading-none block"
+              style={{ color: 'var(--combo)', fontSize: `${Math.min(3 + combo * 0.25, 6)}rem`,
+                textShadow: `0 0 ${Math.min(combo * 4, 45)}px color-mix(in srgb, var(--combo) 90%, transparent)` }}>
               {combo}
             </span>
-            <span className="block text-[10px] font-bold tracking-[0.4em] -mt-1"
-              style={{ color: 'var(--combo)' }}>COMBO</span>
+            <span className="block text-xs font-black tracking-[0.5em] -mt-1"
+              style={{ color: 'var(--combo)', textShadow: '0 0 10px color-mix(in srgb, var(--combo) 70%, transparent)' }}>
+              COMBO
+            </span>
           </div>
         </div>
       )}
