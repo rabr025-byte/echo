@@ -3,12 +3,15 @@
 // 主打:標準/AI 生題(大卡片) | 次要:進階/限時/極限/錯題(小按鈕) | AI 幻影獨立強調
 import type { QuestionBank } from '../types/bank';
 import type { Mode } from '../lib/useGame';
+import { loadDaily } from '../lib/daily';
 
 interface Props {
   bank: QuestionBank;
   mistakeCount: number;
   hasApiKey: boolean;
   phantomLoading: boolean;
+  streakDays: number;
+  onOpenStreak: () => void;
   onStart: (m: Mode) => void;
   onOpenBankPicker: () => void;
   onOpenSettings: () => void;
@@ -23,9 +26,11 @@ const SUB_MODES: { id: Mode; label: string; hint: string }[] = [
 ];
 
 export const Menu = ({
-  bank, mistakeCount, hasApiKey, phantomLoading,
+  bank, mistakeCount, hasApiKey, phantomLoading, streakDays, onOpenStreak,
   onStart, onOpenBankPicker, onOpenSettings, onOpenAiGenerate,
-}: Props) => (
+}: Props) => {
+  const daily = loadDaily();
+  return (
   <div className="min-h-screen flex flex-col px-5 py-8 max-w-md mx-auto w-full">
     {/* 頂列:題庫切換 + 設定 */}
     <div className="flex justify-between items-center mb-8">
@@ -35,10 +40,19 @@ export const Menu = ({
         {bank.displayName}
         <span className="text-fg-dim">⌄</span>
       </button>
-      <button onClick={onOpenSettings}
-        className="text-fg-dim text-sm tracking-widest active:scale-95 transition-transform">
-        設定
-      </button>
+      <div className="flex items-center gap-4">
+        {streakDays > 0 && (
+          <button onClick={onOpenStreak}
+            className="flex items-center gap-1 text-sm font-black tabular-nums active:scale-95 transition-transform"
+            style={{ color: 'var(--accent)' }}>
+            <span className="text-base">🔥</span>{streakDays}
+          </button>
+        )}
+        <button onClick={onOpenSettings}
+          className="text-fg-dim text-sm tracking-widest active:scale-95 transition-transform">
+          設定
+        </button>
+      </div>
     </div>
 
     {/* 標題區(識別) */}
@@ -80,6 +94,25 @@ export const Menu = ({
       </span>
     </button>
 
+    {/* 每日任務 */}
+    <div className="card-rise w-full p-4 rounded-2xl border border-theme-border bg-card mb-6"
+      style={{ animationDelay: '0.26s' }}>
+      <div className="flex justify-between items-center mb-3">
+        <span className="text-[10px] text-fg-dim tracking-[0.3em] uppercase">今日任務</span>
+        {daily.allDone && <span className="text-[10px] font-black" style={{ color: 'var(--good)' }}>✅ 全部完成</span>}
+      </div>
+      <div className="flex flex-col gap-2">
+        {daily.quests.map(q => (
+          <div key={q.id} className="flex justify-between items-center text-xs">
+            <span className={q.done ? 'line-through opacity-50' : ''}>{q.label}</span>
+            <span className="font-mono tabular-nums" style={{ color: q.done ? 'var(--good)' : 'var(--fg-dim)' }}>
+              {q.done ? '✓' : `${q.progress}/${q.target}`}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+
     {/* AI 區(強調,放底部有分隔) */}
     <div className="mt-auto pt-5 border-t border-theme-border flex flex-col gap-3">
       <div className="text-fg-dim text-[10px] tracking-[0.3em] uppercase">AI 功能</div>
@@ -99,4 +132,5 @@ export const Menu = ({
       </button>
     </div>
   </div>
-);
+  );
+};

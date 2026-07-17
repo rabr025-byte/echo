@@ -5,6 +5,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import type { Question, QuestionBank } from '../types/bank';
 import { saveStat, addMistake, addRecord } from './storage';
+import { loadGhost, saveGhostIfBetter, type GhostRun } from './ghost';
+import { updateDaily } from './daily';
 
 export type Mode = 'normal' | 'hard' | 'speed' | 'sudden_death' | 'mistake' | 'phantom';
 
@@ -35,6 +37,11 @@ export function useGame(bank: QuestionBank) {
   const [hp, setHp] = useState(HP_MAX);
   const [combo, setCombo] = useState(0);
   const [comboBurst, setComboBurst] = useState(0); // 里程碑信號:達 5/10/15... 連擊時 +1,Quiz 監聽放特效
+  const [stake, setStake] = useState(false);       // 賭注模式:本題分數×2,答錯扣 2 顆心
+  const [ghost, setGhost] = useState<GhostRun | null>(null); // 上次最佳(幽靈)
+  const [newRecord, setNewRecord] = useState(false);          // 本局破紀錄
+  const [dailyAllDone, setDailyAllDone] = useState(false);    // 本局中達成每日全任務
+  const runTimestamps = useRef<number[]>([]);                 // 本局每題答完的秒數
   const [points, setPoints] = useState(0);
   const [timer, setTimer] = useState(0);
   const [floats, setFloats] = useState<FloatText[]>([]);
@@ -84,7 +91,10 @@ export function useGame(bank: QuestionBank) {
 
     setMode(m); setQuestions(qs);
     setCurrentIdx(0); setSelected(null); setAnswered(false);
-    setScore(0); setHp(HP_MAX); setCombo(0); setComboBurst(0); setPoints(0);
+    setScore(0); setHp(HP_MAX); setCombo(0); setComboBurst(0); setPoints(0); setStake(false);
+    setGhost(m === 'mistake' || m === 'phantom' ? null : loadGhost(bank.bankId, m)); // 錯題/幻影不比幽靈
+    setNewRecord(false); setDailyAllDone(false);
+    runTimestamps.current = [];
     setTimer(0); setFloats([]); setFinished(false);
     startedRef.current = true;
     return { ok: true };
@@ -100,6 +110,16 @@ export function useGame(bank: QuestionBank) {
     if (timerRef.current) clearInterval(timerRef.current);
     startedRef.current = false;
     setFinished(true);
+    if (updateDaily('finish')) setDailyAllDone(true);
+    // 存幽靈(錯題/幻影模式不算)
+    if (mode !== 'mistake' && mode !== 'phantom') {
+      const broke = saveGhostIfBetter(bank.bankId, mode, {
+        timestamps: [...runTimestamps.current],
+        score: finalScore, total,
+        date: new Date().toISOString().slice(0, 10),
+      });
+      if (broke) setNewRecord(true);
+    }
     addRecord(bank.bankId, {
       date: new Date().toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
       score: finalScore, total, mode, time: timer, points,
@@ -115,14 +135,20 @@ export function useGame(bank: QuestionBank) {
 
     if (navigator.vibrate) navigator.vibrate(correct ? 30 : [50, 50, 50]);
 
+    setStake(false); // 賭注單題有效,答完歸零
+    runTimestamps.current.push(timer); // 記錄本題答完時間(幽靈用)
     if (correct) {
+      if (updateDaily('correct')) setDailyAllDone(true);
       const bonus = Math.min(combo * COMBO_STEP, COMBO_CAP);
-      const pts = BASE_POINTS + bonus;
+      const pts = (BASE_POINTS + bonus) * (stake ? 2 : 1); // 賭注加倍
       setScore(s => s + 1);
       setPoints(p => p + pts);
       setCombo(c => {
         const nc = c + 1;
-        if (nc > 0 && nc % 5 === 0) setComboBurst(b => b + 1); // 每 5 連觸發里程碑爆發
+        if (nc > 0 && nc % 5 === 0) {
+          setComboBurst(b => b + 1); // 每 5 連觸發里程碑爆發
+          if (nc === 5 && updateDaily('combo5')) setDailyAllDone(true);
+        }
         return nc;
       });
       pushFloat(x, y, `+${pts}`, 'good');
@@ -133,14 +159,14 @@ export function useGame(bank: QuestionBank) {
       setShake(true); setTimeout(() => setShake(false), 500);
       addMistake(bank.bankId, q.id);
       setHp(prev => {
-        const nhp = prev - HP_LOSS;
+        const nhp = prev - HP_LOSS * (stake ? 2 : 1); // 賭注答錯扣兩顆心
         if (nhp <= 0) setTimeout(() => finish(score, questions.length), 1000);
         return nhp;
       });
       if (mode === 'sudden_death') setTimeout(() => finish(score, currentIdx + 1), 1000);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [answered, questions, currentIdx, combo, mode, bank.bankId, score]);
+  }, [answered, questions, currentIdx, combo, mode, bank.bankId, score, stake, timer]);
 
   const next = useCallback(() => {
     if (hp <= 0) return finish(score, questions.length);
@@ -162,6 +188,8 @@ export function useGame(bank: QuestionBank) {
   return {
     mode, questions, currentIdx, selected, answered,
     score, hp, combo, comboBurst, points, timer, floats, shake, finished,
+    stake, setStake,
+    ghost, newRecord, dailyAllDone,
     current: questions[currentIdx],
     start, answer, next, quit,
     HP_MAX,

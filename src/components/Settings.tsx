@@ -123,10 +123,16 @@ export const Settings = ({ settings, onSave, onClose }: Props) => {
           ))}
         </div>
 
-        <button onClick={handleSave}
-          className="w-full py-4 rounded-xl bg-accent text-accent-fg font-bold tracking-widest active:scale-[0.98] transition-all">
-          {saved ? '✓ 已儲存' : '儲存設定'}
-        </button>
+        <div className="flex gap-3">
+          <button onClick={handleClose}
+            className="flex-1 py-4 rounded-xl border border-theme-border text-fg/70 font-bold tracking-widest active:scale-[0.98] transition-all">
+            取消
+          </button>
+          <button onClick={() => { handleSave(); setTimeout(() => { onClose(); }, 600); }}
+            className="flex-[2] py-4 rounded-xl bg-accent text-accent-fg font-bold tracking-widest active:scale-[0.98] transition-all">
+            {saved ? '✓ 已儲存' : '儲存設定'}
+          </button>
+        </div>
       </div>
     </div>
   );

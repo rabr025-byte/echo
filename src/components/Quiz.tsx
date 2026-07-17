@@ -13,7 +13,7 @@ interface Props {
 interface Particle { id: number; dx: number; dy: number; }
 
 export const Quiz = ({ game, onQuit, onAiExplain, devMode }: Props) => {
-  const { current, currentIdx, questions, selected, answered, hp, combo, comboBurst, points, floats, shake, HP_MAX } = game;
+  const { current, currentIdx, questions, selected, answered, hp, combo, comboBurst, points, floats, shake, HP_MAX, stake, ghost, timer } = game;
   const [aiText, setAiText] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
@@ -156,10 +156,39 @@ export const Quiz = ({ game, onQuit, onAiExplain, devMode }: Props) => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center text-xs text-fg-dim mb-6 tabular-nums">
-        <span>{currentIdx + 1} / {questions.length}</span>
-        <span className="font-mono">{points} 分</span>
-      </div>
+      {/* 進度 + 幽靈對手 */}
+      {(() => {
+        // 幽靈:依目前經過秒數,推算上次的你答到第幾題
+        const ghostIdx = ghost ? ghost.timestamps.filter(t => t <= timer).length : -1;
+        const ahead = ghostIdx >= 0 && (currentIdx + (answered ? 1 : 0)) > ghostIdx;
+        return (
+          <div className="flex justify-between items-center text-xs text-fg-dim mb-4 tabular-nums">
+            <span>{currentIdx + 1} / {questions.length}</span>
+            {ghost && (
+              <span className="flex items-center gap-1 text-[10px] tracking-wider"
+                style={{ color: ahead ? 'var(--good)' : 'var(--fg-dim)' }}>
+                👻 {ahead ? '領先幽靈' : `幽靈在第 ${Math.min(ghostIdx + 1, ghost.total)} 題`}
+              </span>
+            )}
+            <span className="font-mono">{points} 分</span>
+          </div>
+        );
+      })()}
+
+      {/* 賭注模式:答題前可押,分數×2 但答錯扣 2 顆心 */}
+      {!answered && (
+        <button onClick={() => game.setStake(!stake)}
+          className={`mb-4 self-start px-4 py-2 rounded-full border text-xs font-black tracking-widest transition-all active:scale-95 ${
+            stake ? 'animate-heart-panic' : ''
+          }`}
+          style={stake ? {
+            borderColor: 'var(--combo)', color: 'var(--combo)',
+            background: 'color-mix(in srgb, var(--combo) 12%, transparent)',
+            boxShadow: '0 0 14px color-mix(in srgb, var(--combo) 50%, transparent)',
+          } : { borderColor: 'var(--border)', color: 'var(--fg-dim)' }}>
+          {stake ? '🎲 賭注中 · 分數×2 / 答錯 -2♥' : '🎲 押賭注'}
+        </button>
+      )}
 
       <div className="mb-6">
         {current.source && <div className="text-fg-dim text-[10px] mb-2 tracking-wider">{current.source}</div>}

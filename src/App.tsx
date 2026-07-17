@@ -6,6 +6,8 @@ import { useGame, type Mode } from './lib/useGame';
 import { loadMistakes } from './lib/storage';
 import { loadSettings, saveSettings } from './lib/settings';
 import { applyTheme } from './lib/themes';
+import { checkInToday, type StreakData } from './lib/streak';
+import { StreakCalendar } from './components/StreakCalendar';
 import type { AISettings } from './lib/ai/types';
 import { getProvider } from './lib/ai';
 import { explainPrompt, phantomPrompt } from './lib/ai/prompts';
@@ -27,6 +29,14 @@ export const App = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState<AISettings>(loadSettings);
   const [mistakeCount, setMistakeCount] = useState(0);
+  const [streak, setStreak] = useState<StreakData | null>(null);
+  const [showStreak, setShowStreak] = useState(false);
+
+  // 每天首次打開記錄登入
+  useEffect(() => {
+    const { data } = checkInToday();
+    setStreak(data);
+  }, []);
 
   // 套用主題(載入時 + 主題變更時)
   useEffect(() => { applyTheme(settings.theme); }, [settings.theme]);
@@ -66,6 +76,8 @@ export const App = () => {
     settings={settings}
     onSaveSettings={(s) => { setSettings(s); saveSettings(s); }}
     mistakeCount={mistakeCount}
+    streak={streak}
+    showStreak={showStreak} setShowStreak={setShowStreak}
     onPickBank={(b) => { setBank(b); setShowPicker(false); setView('menu'); }}
   />;
 };
@@ -74,7 +86,7 @@ export const App = () => {
 function GameShell({
   bank, view, setView, showPicker, setShowPicker,
   showSettings, setShowSettings, settings, onSaveSettings,
-  mistakeCount, onPickBank,
+  mistakeCount, streak, showStreak, setShowStreak, onPickBank,
 }: {
   bank: QuestionBank;
   view: View; setView: (v: View) => void;
@@ -82,6 +94,8 @@ function GameShell({
   showSettings: boolean; setShowSettings: (b: boolean) => void;
   settings: AISettings; onSaveSettings: (s: AISettings) => void;
   mistakeCount: number;
+  streak: StreakData | null;
+  showStreak: boolean; setShowStreak: (b: boolean) => void;
   onPickBank: (b: QuestionBank) => void;
 }) {
   const game = useGame(bank);
@@ -145,6 +159,8 @@ function GameShell({
         <Menu bank={bank} mistakeCount={mistakeCount}
           hasApiKey={!!settings.apiKey}
           phantomLoading={phantomLoading}
+          streakDays={streak?.current ?? 0}
+          onOpenStreak={() => setShowStreak(true)}
           onStart={handleStart}
           onOpenBankPicker={() => setShowPicker(true)}
           onOpenSettings={() => setShowSettings(true)}
@@ -168,6 +184,10 @@ function GameShell({
 
       {showSettings && (
         <Settings settings={settings} onSave={onSaveSettings} onClose={() => setShowSettings(false)} />
+      )}
+
+      {showStreak && streak && (
+        <StreakCalendar streak={streak} onClose={() => setShowStreak(false)} />
       )}
 
       {showGen && (

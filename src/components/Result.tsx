@@ -23,7 +23,7 @@ function grade(pct: number, survived: boolean) {
 interface Particle { id: number; dx: number; dy: number; delay: number; }
 
 export const Result = ({ game, onReplay, onMenu }: Props) => {
-  const { score, questions, points, timer, hp } = game;
+  const { score, questions, points, timer, hp, newRecord, dailyAllDone } = game;
   const total = questions.length;
   const pct = total > 0 ? Math.round((score / total) * 100) : 0;
   const survived = hp > 0;
@@ -65,6 +65,20 @@ export const Result = ({ game, onReplay, onMenu }: Props) => {
           {pct}<span className="text-3xl">%</span>
         </div>
         <div className="text-fg-dim text-sm mt-2">答對 {score} / {total} 題</div>
+        {newRecord && (
+          <div className="mt-3 inline-block px-4 py-1.5 rounded-full text-xs font-black tracking-widest animate-pop"
+            style={{ background: 'color-mix(in srgb, var(--combo) 15%, transparent)', color: 'var(--combo)',
+              border: '1px solid color-mix(in srgb, var(--combo) 50%, transparent)' }}>
+            🏆 新紀錄!超越了上次的自己
+          </div>
+        )}
+        {dailyAllDone && (
+          <div className="mt-2 inline-block px-4 py-1.5 rounded-full text-xs font-black tracking-widest animate-pop"
+            style={{ background: 'color-mix(in srgb, var(--good) 15%, transparent)', color: 'var(--good)',
+              border: '1px solid color-mix(in srgb, var(--good) 50%, transparent)' }}>
+            ✅ 今日任務全部完成!
+          </div>
+        )}
       </div>
 
       <div className="w-full grid grid-cols-2 gap-3">
