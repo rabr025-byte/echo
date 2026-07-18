@@ -2,6 +2,7 @@
 // [Echo] 結算 v2 — 依成績分級慶祝
 import { useGame } from '../lib/useGame';
 import { useEffect, useState } from 'react';
+import { Trophy, CheckCircle2 } from 'lucide-react';
 
 interface Props {
   game: ReturnType<typeof useGame>;
@@ -69,14 +70,14 @@ export const Result = ({ game, onReplay, onMenu }: Props) => {
           <div className="mt-3 inline-block px-4 py-1.5 rounded-full text-xs font-black tracking-widest animate-pop"
             style={{ background: 'color-mix(in srgb, var(--combo) 15%, transparent)', color: 'var(--combo)',
               border: '1px solid color-mix(in srgb, var(--combo) 50%, transparent)' }}>
-            🏆 新紀錄!超越了上次的自己
+            <span className="flex items-center gap-1.5"><Trophy size={14} /> 新紀錄!超越了上次的自己</span>
           </div>
         )}
         {dailyAllDone && (
           <div className="mt-2 inline-block px-4 py-1.5 rounded-full text-xs font-black tracking-widest animate-pop"
             style={{ background: 'color-mix(in srgb, var(--good) 15%, transparent)', color: 'var(--good)',
               border: '1px solid color-mix(in srgb, var(--good) 50%, transparent)' }}>
-            ✅ 今日任務全部完成!
+            <span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> 今日任務全部完成!</span>
           </div>
         )}
       </div>

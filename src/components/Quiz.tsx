@@ -2,6 +2,7 @@
 // [Echo] 答題畫面 v2 — 多巴胺爆發版
 import { useGame } from '../lib/useGame';
 import { useState, useEffect, useRef } from 'react';
+import { Heart, Dice5, Ghost, Sparkles, Zap } from 'lucide-react';
 
 interface Props {
   game: ReturnType<typeof useGame>;
@@ -159,12 +160,12 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
             const justBroke = i === heartsLeft && answered; // 剛碎的那顆播碎裂
             return (
               <span key={`${i}-${alive}`}
-                className={`text-xl ${justBroke ? 'animate-heart-break' : isLast ? 'animate-heart-panic' : ''}`}
+                className={justBroke ? 'animate-heart-break' : isLast ? 'animate-heart-panic' : ''}
                 style={{
                   color: alive ? 'var(--bad)' : 'color-mix(in srgb, var(--fg-dim) 35%, transparent)',
                   filter: alive ? 'drop-shadow(0 0 4px color-mix(in srgb, var(--bad) 50%, transparent))' : 'none',
                 }}>
-                ♥
+                <Heart size={20} fill={alive ? 'currentColor' : 'none'} strokeWidth={alive ? 0 : 1.5} />
               </span>
             );
           })}
@@ -174,7 +175,7 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
             <button
               onClick={() => game.answer(current.answer, window.innerWidth / 2, window.innerHeight / 3)}
               className="text-combo text-xs tracking-widest border border-theme-border rounded-lg px-2 py-1 active:scale-95">
-              ⚡自動答對
+              <span className="flex items-center gap-1"><Zap size={12} />自動答對</span>
             </button>
           )}
           <button onClick={onQuit} className="text-fg-dim text-xs tracking-widest active:scale-95">結束</button>
@@ -192,7 +193,7 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
             {ghost && (
               <span className="flex items-center gap-1 text-[10px] tracking-wider"
                 style={{ color: ahead ? 'var(--good)' : 'var(--fg-dim)' }}>
-                👻 {ahead ? '領先幽靈' : `幽靈在第 ${Math.min(ghostIdx + 1, ghost.total)} 題`}
+                <Ghost size={12} /> {ahead ? '領先幽靈' : `幽靈在第 ${Math.min(ghostIdx + 1, ghost.total)} 題`}
               </span>
             )}
             <span className="font-mono">{points} 分</span>
@@ -211,7 +212,10 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
             background: 'color-mix(in srgb, var(--combo) 12%, transparent)',
             boxShadow: '0 0 14px color-mix(in srgb, var(--combo) 50%, transparent)',
           } : { borderColor: 'var(--border)', color: 'var(--fg-dim)' }}>
-          {stake ? '🎲 賭注中 · 分數×2 / 答錯 -2♥' : '🎲 押賭注'}
+          <span className="flex items-center gap-1.5">
+            <Dice5 size={14} />
+            {stake ? '賭注中 · 分數×2 / 答錯扣 2 心' : '押賭注'}
+          </span>
         </button>
       )}
 
@@ -288,14 +292,14 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
               {!aiText && !aiLoading && (
                 <button onClick={handleAi}
                   className="w-full py-3 rounded-xl border border-theme-border text-fg-dim text-sm font-bold tracking-widest active:scale-[0.98] transition-all">
-                  ✦ AI 解讀這題
+                  <span className="flex items-center justify-center gap-1.5"><Sparkles size={14} /> AI 解讀這題</span>
                 </button>
               )}
               {aiLoading && <div className="w-full py-3 text-center text-fg-dim text-sm animate-pulse">AI 思考中…</div>}
               {aiError && <div className="p-3 rounded-xl bg-bad/10 border border-bad/30 text-bad text-xs">{aiError}</div>}
               {aiText && (
                 <div className="p-4 rounded-xl bg-card border border-accent/30">
-                  <div className="text-fg-dim text-[10px] tracking-widest mb-1">✦ AI 解讀</div>
+                  <div className="text-fg-dim text-[10px] tracking-widest mb-1 flex items-center gap-1"><Sparkles size={11} /> AI 解讀</div>
                   <p className="text-sm text-fg/80 leading-relaxed whitespace-pre-wrap">{aiText}</p>
                 </div>
               )}

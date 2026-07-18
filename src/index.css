@@ -34,6 +34,9 @@ body {
   color: var(--fg);
   font-family: system-ui, -apple-system, 'Noto Sans TC', sans-serif;
   transition: background 0.4s ease, color 0.4s ease;
+  /* iOS 瀏海/狀態列安全區,避免內容被蓋住 */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* 遊戲動畫 */

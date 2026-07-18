@@ -4,6 +4,7 @@
 import type { QuestionBank } from '../types/bank';
 import type { Mode } from '../lib/useGame';
 import { loadDaily } from '../lib/daily';
+import { Flame, PenLine, Sparkles, ChevronDown, CheckCircle2 } from 'lucide-react';
 
 interface Props {
   bank: QuestionBank;
@@ -39,14 +40,14 @@ export const Menu = ({
         className="flex items-center gap-1.5 text-fg-dim text-sm tracking-widest active:scale-95 transition-transform">
         <span className="w-1.5 h-1.5 rounded-full bg-accent glow-accent" />
         {bank.displayName}
-        <span className="text-fg-dim">⌄</span>
+        <ChevronDown size={14} className="text-fg-dim" />
       </button>
       <div className="flex items-center gap-4">
         {streakDays > 0 && (
           <button onClick={onOpenStreak}
             className="flex items-center gap-1 text-sm font-black tabular-nums active:scale-95 transition-transform"
             style={{ color: 'var(--accent)' }}>
-            <span className="text-base">🔥</span>{streakDays}
+            <Flame size={16} fill="currentColor" />{streakDays}
           </button>
         )}
         <button onClick={onOpenSettings}
@@ -100,7 +101,7 @@ export const Menu = ({
       <button onClick={() => onStart('essay')}
         className="card-rise w-full p-4 rounded-2xl border border-theme-border bg-card active:scale-[0.98] transition-transform mb-3 flex justify-between items-center"
         style={{ animationDelay: '0.24s' }}>
-        <span className="text-base font-bold tracking-widest">✍️ 申論挑戰</span>
+        <span className="text-base font-bold tracking-widest flex items-center gap-2"><PenLine size={16} /> 申論挑戰</span>
         <span className="text-fg-dim text-xs">{essayCount} 題 · AI 評分</span>
       </button>
     )}
@@ -111,7 +112,7 @@ export const Menu = ({
       style={{ animationDelay: '0.26s' }}>
       <div className="flex justify-between items-center mb-3">
         <span className="text-[10px] text-fg-dim tracking-[0.3em] uppercase">今日任務</span>
-        {daily.allDone && <span className="text-[10px] font-black" style={{ color: 'var(--good)' }}>✅ 全部完成</span>}
+        {daily.allDone && <span className="text-[10px] font-black flex items-center gap-1" style={{ color: 'var(--good)' }}><CheckCircle2 size={12} /> 全部完成</span>}
       </div>
       <div className="flex flex-col gap-2">
         {daily.quests.map(q => (
@@ -131,7 +132,7 @@ export const Menu = ({
       <button onClick={() => onStart('phantom')} disabled={phantomLoading}
         className="w-full p-4 rounded-2xl border border-accent/40 bg-accent/10 active:scale-[0.98] transition-transform text-left flex items-center justify-between disabled:opacity-50">
         <div>
-          <div className="text-base font-bold tracking-widest">✦ AI 幻影{phantomLoading && ' · 生成中'}</div>
+          <div className="text-base font-bold tracking-widest flex items-center gap-2"><Sparkles size={16} /> AI 幻影{phantomLoading && ' · 生成中'}</div>
           <div className="text-fg-dim text-[10px] mt-0.5">
             {hasApiKey ? 'AI 即時出一題考你' : '需先設定 API Key'}
           </div>
@@ -139,7 +140,7 @@ export const Menu = ({
       </button>
       <button onClick={onOpenAiGenerate}
         className="w-full p-4 rounded-2xl border border-accent/40 bg-accent/10 active:scale-[0.98] transition-transform text-left">
-        <div className="text-base font-bold tracking-widest">✦ AI 生成題庫</div>
+        <div className="text-base font-bold tracking-widest flex items-center gap-2"><Sparkles size={16} /> AI 生成題庫</div>
         <div className="text-fg-dim text-[10px] mt-0.5">貼筆記,變成一整套題目</div>
       </button>
     </div>

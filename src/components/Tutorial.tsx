@@ -15,9 +15,9 @@ const STEPS: Step[] = [
   { target: 'bank', title: '題庫', text: '點這裡可以換題庫、上傳你自己的題庫 JSON。' },
   { target: 'start', title: '開始挑戰', text: '主戰場。隨機 10 題,答對疊 combo,答錯碎一顆心。' },
   { target: 'modes', title: '更多模式', text: '進階 50 題、限時衝刺、極限一錯即死——各有玩法。' },
-  { target: 'daily', title: '今日任務', text: '每天三個小目標,全完成有慶祝。記得每天回來點亮連續登入 🔥' },
+  { target: 'daily', title: '今日任務', text: '每天三個小目標,全完成有慶祝。記得每天回來點亮連續登入' },
   { target: 'ai', title: 'AI 功能', text: '填入 API Key 後,AI 可以即時出題、解讀題目、把你的筆記變成題庫。' },
-  { target: '', title: '準備好了', text: '答題時試試「押賭注」🎲——分數翻倍,但答錯扣兩顆心。開始吧!' },
+  { target: '', title: '準備好了', text: '答題時試試「押賭注」——分數翻倍,但答錯扣兩顆心。開始吧!' },
 ];
 
 const KEY = 'echo:tutorial_done';

@@ -1,6 +1,7 @@
 // src/components/AiGenerate.tsx
 // [Echo] AI 生題庫 — 貼筆記/主題,AI 轉成題庫直接開玩
 import { useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import type { QuestionBank } from '../types/bank';
 import type { AISettings } from '../lib/ai/types';
 import { getProvider } from '../lib/ai';
@@ -66,7 +67,7 @@ export const AiGenerate = ({ settings, onGenerated, onClose }: Props) => {
     <div className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-sm flex flex-col justify-end">
       <div className="max-w-md mx-auto w-full bg-bg border-t border-theme-border rounded-t-3xl p-6 pb-12 max-h-[85vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-bold tracking-widest">✦ AI 生成題庫</h2>
+          <h2 className="text-lg font-bold tracking-widest flex items-center gap-2"><Sparkles size={18} /> AI 生成題庫</h2>
           <button onClick={onClose} className="text-fg-dim text-sm">關閉</button>
         </div>
 
