@@ -8,7 +8,7 @@ import { saveStat, addMistake, addRecord } from './storage';
 import { loadGhost, saveGhostIfBetter, type GhostRun } from './ghost';
 import { updateDaily } from './daily';
 
-export type Mode = 'normal' | 'hard' | 'speed' | 'sudden_death' | 'mistake' | 'phantom';
+export type Mode = 'normal' | 'hard' | 'speed' | 'sudden_death' | 'mistake' | 'phantom' | 'essay';
 
 export interface FloatText { id: number; x: number; y: number; text: string; kind: 'good' | 'bad'; }
 
@@ -77,8 +77,12 @@ export function useGame(bank: QuestionBank) {
     } else if (m === 'phantom') {
       // AI 幻影:題目由外部(AI)提供
       qs = externalQuestions ?? [];
+    } else if (m === 'essay') {
+      const pool = bank.questions.filter(q => q.type === 'essay');
+      if (pool.length === 0) return { ok: false, msg: '這個題庫沒有申論題' };
+      qs = shuffle(pool).slice(0, 5);
     } else {
-      const pool = buildPool(filters);
+      const pool = buildPool(filters).filter(q => q.type !== 'essay'); // 一般模式排除申論
       if (pool.length === 0) return { ok: false, msg: '這個分類沒有題目' };
       if (m === 'speed') qs = pool; // 限時:全部照順序
       else if (m === 'sudden_death') qs = shuffle(pool);
@@ -168,6 +172,45 @@ export function useGame(bank: QuestionBank) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [answered, questions, currentIdx, combo, mode, bank.bankId, score, stake, timer]);
 
+  // 申論題:評分結果回報(score 0-100;60 以上算通過)
+  const essayResolve = useCallback((score100: number) => {
+    if (answered) return;
+    const q = questions[currentIdx];
+    const passed = score100 >= 60;
+    setSelected(null); setAnswered(true);
+    saveStat(bank.bankId, q.id, passed);
+    runTimestamps.current.push(timer);
+    if (navigator.vibrate) navigator.vibrate(passed ? 30 : [50, 50, 50]);
+    setStake(false);
+    if (passed) {
+      if (updateDaily('correct')) setDailyAllDone(true);
+      const bonus = Math.min(combo * COMBO_STEP, COMBO_CAP);
+      const pts = Math.round((BASE_POINTS + bonus) * (score100 / 100) * (stake ? 2 : 1));
+      setScore(s2 => s2 + 1);
+      setPoints(p => p + pts);
+      setCombo(c => {
+        const nc = c + 1;
+        if (nc > 0 && nc % 5 === 0) {
+          setComboBurst(b => b + 1);
+          if (nc === 5 && updateDaily('combo5')) setDailyAllDone(true);
+        }
+        return nc;
+      });
+      pushFloat(window.innerWidth / 2, window.innerHeight / 3, `+${pts}`, 'good');
+    } else {
+      setCombo(0);
+      pushFloat(window.innerWidth / 2, window.innerHeight / 3, `-${HP_LOSS}% HP`, 'bad');
+      setShake(true); setTimeout(() => setShake(false), 500);
+      addMistake(bank.bankId, q.id);
+      setHp(prev => {
+        const nhp = prev - HP_LOSS * (stake ? 2 : 1);
+        if (nhp <= 0) setTimeout(() => finish(score, questions.length), 1000);
+        return nhp;
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answered, questions, currentIdx, combo, stake, bank.bankId, score, timer]);
+
   const next = useCallback(() => {
     if (hp <= 0) return finish(score, questions.length);
     if (currentIdx < questions.length - 1) {
@@ -191,7 +234,7 @@ export function useGame(bank: QuestionBank) {
     stake, setStake,
     ghost, newRecord, dailyAllDone,
     current: questions[currentIdx],
-    start, answer, next, quit,
+    start, answer, essayResolve, next, quit,
     HP_MAX,
   };
 }

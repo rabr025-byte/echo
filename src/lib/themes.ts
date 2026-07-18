@@ -38,17 +38,18 @@ export const THEMES: Record<ThemeId, Theme> = {
   paper: {
     id: 'paper',
     name: '紙感',
+    // Kinfolk 方向:溫潤米色紙質、墨色柔和、陶土色點綴、無光暈
     vars: {
-      '--bg': '#f4f1ea',
-      '--fg': '#1a1a1a',
-      '--fg-dim': 'rgba(26,26,26,0.5)',
-      '--card': 'rgba(26,26,26,0.03)',
-      '--border': 'rgba(26,26,26,0.15)',
-      '--accent': '#c0392b',
-      '--accent-fg': '#f4f1ea',
-      '--good': '#0e9f6e',
-      '--bad': '#c0392b',
-      '--combo': '#d97706',
+      '--bg': '#efe9dd',                      // 米色紙,不死白
+      '--fg': '#3d3833',                      // 柔和暖墨,不用純黑
+      '--fg-dim': 'rgba(61,56,51,0.55)',
+      '--card': 'rgba(61,56,51,0.045)',
+      '--border': 'rgba(61,56,51,0.14)',
+      '--accent': '#a05e45',                  // 陶土色,沉穩溫暖
+      '--accent-fg': '#f5f0e6',
+      '--good': '#6b7f5e',                    // 橄欖綠,低飽和
+      '--bad': '#a3554a',                     // 磚陶紅,不刺眼
+      '--combo': '#b8863f',                   // 舊金,溫潤
       '--glow': '0',
     },
   },

@@ -44,3 +44,17 @@ export const phantomPrompt = (bankName: string, difficulty: string) => `
 { "id": "phantom", "question": "題目", "options": ["A","B","C","D"], "answer": 0, "explanation": "詳解" }
 answer 是 0 到 3 的索引。
 `.trim();
+
+
+// 申論題評分:依評分要點給 0-100 分與短評
+export const gradeEssayPrompt = (question: string, rubric: string, userAnswer: string) => `
+你是嚴謹但友善的閱卷老師。請評分以下申論題作答。
+
+題目:${question}
+評分要點:${rubric || '依題目要求的完整性、正確性、邏輯性評分'}
+學生作答:${userAnswer}
+
+請「只」輸出 JSON(不要其他文字、不要 markdown):
+{ "score": 85, "comment": "答到了X和Y,但漏了Z。建議補充…" }
+score 是 0-100 整數,comment 是 80 字內的繁體中文短評,先講答對什麼再講缺什麼。
+`.trim();

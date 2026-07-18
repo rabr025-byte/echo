@@ -7,14 +7,18 @@ interface Props {
   game: ReturnType<typeof useGame>;
   onQuit: () => void;
   onAiExplain?: (q: { question: string; options: string[]; answerText: string }) => Promise<string>;
+  onGradeEssay?: (q: { question: string; rubric: string; userAnswer: string }) => Promise<{ score: number; comment: string }>;
   devMode?: boolean;
 }
 
 interface Particle { id: number; dx: number; dy: number; }
 
-export const Quiz = ({ game, onQuit, onAiExplain, devMode }: Props) => {
+export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props) => {
   const { current, currentIdx, questions, selected, answered, hp, combo, comboBurst, points, floats, shake, HP_MAX, stake, ghost, timer } = game;
   const [aiText, setAiText] = useState('');
+  const [essayInput, setEssayInput] = useState('');
+  const [grading, setGrading] = useState(false);
+  const [gradeResult, setGradeResult] = useState<{ score: number; comment: string } | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
 
@@ -53,6 +57,9 @@ export const Quiz = ({ game, onQuit, onAiExplain, devMode }: Props) => {
     }
   }, [combo]);
 
+  // 換題清空申論輸入與評分/AI 詳解
+  useEffect(() => { setEssayInput(''); setGradeResult(null); setAiText(''); setAiError(''); }, [currentIdx]);
+
   if (!current) return null;
 
   const handleAi = async () => {
@@ -67,6 +74,24 @@ export const Quiz = ({ game, onQuit, onAiExplain, devMode }: Props) => {
     } catch (e) {
       setAiError(e instanceof Error ? e.message : 'AI 解讀失敗');
     } finally { setAiLoading(false); }
+  };
+
+  const isEssay = current.type === 'essay';
+
+  const handleEssaySubmit = async () => {
+    if (!onGradeEssay || essayInput.trim().length < 10) return;
+    setGrading(true); setAiError('');
+    try {
+      const r = await onGradeEssay({
+        question: current.question,
+        rubric: current.rubric ?? '',
+        userAnswer: essayInput.trim(),
+      });
+      setGradeResult(r);
+      game.essayResolve(r.score);
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : '評分失敗,請再試一次');
+    } finally { setGrading(false); }
   };
 
   return (
@@ -195,6 +220,39 @@ export const Quiz = ({ game, onQuit, onAiExplain, devMode }: Props) => {
         <p className="text-lg leading-relaxed font-medium">{current.question}</p>
       </div>
 
+      {/* 申論題:輸入作答 */}
+      {isEssay && (
+        <div className="flex flex-col gap-3">
+          <textarea value={essayInput} onChange={e => setEssayInput(e.target.value)}
+            disabled={answered || grading}
+            placeholder="輸入你的回答(至少 10 個字)…"
+            rows={6}
+            className="w-full bg-card border border-theme-border rounded-xl p-4 text-sm outline-none focus:border-accent/50 resize-none leading-relaxed" />
+          {!answered && (
+            <button onClick={handleEssaySubmit} disabled={grading || essayInput.trim().length < 10}
+              className="w-full py-4 rounded-xl bg-accent text-accent-fg font-bold tracking-widest active:scale-[0.98] transition-all disabled:opacity-40">
+              {grading ? 'AI 評分中…' : '送出作答'}
+            </button>
+          )}
+          {aiError && <div className="p-3 rounded-xl bg-bad/10 border border-bad/30 text-bad text-xs">{aiError}</div>}
+          {gradeResult && (
+            <div className="p-4 rounded-xl bg-card border animate-pop"
+              style={{ borderColor: gradeResult.score >= 60 ? 'var(--good)' : 'var(--bad)' }}>
+              <div className="flex items-baseline gap-2 mb-2">
+                <span className="text-3xl font-black tabular-nums"
+                  style={{ color: gradeResult.score >= 60 ? 'var(--good)' : 'var(--bad)' }}>
+                  {gradeResult.score}
+                </span>
+                <span className="text-fg-dim text-xs">/ 100 · AI 評分僅供參考</span>
+              </div>
+              <p className="text-sm text-fg/80 leading-relaxed">{gradeResult.comment}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 選擇題:選項 */}
+      {!isEssay && (
       <div className="flex flex-col gap-3">
         {current.options.map((opt, i) => {
           const isCorrect = i === current.answer;
@@ -214,6 +272,7 @@ export const Quiz = ({ game, onQuit, onAiExplain, devMode }: Props) => {
           );
         })}
       </div>
+      )}
 
       {answered && (
         <div className="mt-6">

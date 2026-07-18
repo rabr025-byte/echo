@@ -4,9 +4,11 @@
 
 export interface Question {
   id: string;            // 題目唯一 id(題庫內不可重複)
+  type?: 'choice' | 'essay'; // 題型:選擇(預設)或申論
   question: string;      // 題目文字
-  options: string[];     // 選項(至少 2 個)
-  answer: number;        // 正解索引(0 起算)
+  options: string[];     // 選項(選擇題必填;申論題可為空陣列)
+  answer: number;        // 正解索引(選擇題用;申論題填 0 即可)
+  rubric?: string;       // 申論題評分要點(給 AI 當評分標準)
   explanation?: string;  // 詳解(選填)
   source?: string;       // 題目出處(選填)
   subject?: number;      // 科目編號(選填,考試類題庫用)

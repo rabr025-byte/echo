@@ -35,10 +35,17 @@ export function validateBank(raw: unknown): ValidateResult {
       else if (seenIds.has(String(qq.id))) errors.push(`第 ${n} 題 id「${qq.id}」重複`);
       else seenIds.add(String(qq.id));
       if (!qq.question || typeof qq.question !== 'string') errors.push(`第 ${n} 題缺少題目文字`);
-      if (!Array.isArray(qq.options) || qq.options.length < 2) errors.push(`第 ${n} 題選項少於 2 個`);
-      if (typeof qq.answer !== 'number') errors.push(`第 ${n} 題缺少正解 answer(數字)`);
-      else if (Array.isArray(qq.options) && (qq.answer < 0 || qq.answer >= qq.options.length))
-        errors.push(`第 ${n} 題正解索引 ${qq.answer} 超出選項範圍`);
+      const isEssay = qq.type === 'essay';
+      if (isEssay) {
+        // 申論題:不檢查選項/answer,建議有 rubric
+        if (!qq.rubric || typeof qq.rubric !== 'string')
+          errors.push(`第 ${n} 題是申論題,建議提供 rubric(評分要點)讓 AI 評分更準`);
+      } else {
+        if (!Array.isArray(qq.options) || qq.options.length < 2) errors.push(`第 ${n} 題選項少於 2 個`);
+        if (typeof qq.answer !== 'number') errors.push(`第 ${n} 題缺少正解 answer(數字)`);
+        else if (Array.isArray(qq.options) && (qq.answer < 0 || qq.answer >= qq.options.length))
+          errors.push(`第 ${n} 題正解索引 ${qq.answer} 超出選項範圍`);
+      }
     });
   }
 

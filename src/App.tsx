@@ -8,9 +8,10 @@ import { loadSettings, saveSettings } from './lib/settings';
 import { applyTheme } from './lib/themes';
 import { checkInToday, type StreakData } from './lib/streak';
 import { StreakCalendar } from './components/StreakCalendar';
+import { Tutorial, isTutorialDone } from './components/Tutorial';
 import type { AISettings } from './lib/ai/types';
 import { getProvider } from './lib/ai';
-import { explainPrompt, phantomPrompt } from './lib/ai/prompts';
+import { explainPrompt, phantomPrompt, gradeEssayPrompt } from './lib/ai/prompts';
 import { validateBank } from './lib/validateBank';
 import { Menu } from './components/Menu';
 import { Quiz } from './components/Quiz';
@@ -31,6 +32,13 @@ export const App = () => {
   const [mistakeCount, setMistakeCount] = useState(0);
   const [streak, setStreak] = useState<StreakData | null>(null);
   const [showStreak, setShowStreak] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  // 首次開啟且題庫載入完成 → 啟動導引
+  useEffect(() => {
+    if (bank && view === 'menu' && !isTutorialDone()) setShowTutorial(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bank, view]);
 
   // 每天首次打開記錄登入
   useEffect(() => {
@@ -76,6 +84,7 @@ export const App = () => {
     settings={settings}
     onSaveSettings={(s) => { setSettings(s); saveSettings(s); }}
     mistakeCount={mistakeCount}
+    showTutorial={showTutorial} onTutorialDone={() => setShowTutorial(false)}
     streak={streak}
     showStreak={showStreak} setShowStreak={setShowStreak}
     onPickBank={(b) => { setBank(b); setShowPicker(false); setView('menu'); }}
@@ -86,7 +95,7 @@ export const App = () => {
 function GameShell({
   bank, view, setView, showPicker, setShowPicker,
   showSettings, setShowSettings, settings, onSaveSettings,
-  mistakeCount, streak, showStreak, setShowStreak, onPickBank,
+  mistakeCount, showTutorial, onTutorialDone, streak, showStreak, setShowStreak, onPickBank,
 }: {
   bank: QuestionBank;
   view: View; setView: (v: View) => void;
@@ -94,6 +103,7 @@ function GameShell({
   showSettings: boolean; setShowSettings: (b: boolean) => void;
   settings: AISettings; onSaveSettings: (s: AISettings) => void;
   mistakeCount: number;
+  showTutorial: boolean; onTutorialDone: () => void;
   streak: StreakData | null;
   showStreak: boolean; setShowStreak: (b: boolean) => void;
   onPickBank: (b: QuestionBank) => void;
@@ -110,6 +120,19 @@ function GameShell({
     return provider.generate(prompt, settings.apiKey);
   };
 
+  // 申論題 AI 評分 handler
+  const handleGradeEssay = async (q: { question: string; rubric: string; userAnswer: string }) => {
+    const provider = getProvider(settings.provider);
+    const raw = await provider.generate(gradeEssayPrompt(q.question, q.rubric, q.userAnswer), settings.apiKey);
+    let t = raw.trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '');
+    const s2 = t.indexOf('{'), e2 = t.lastIndexOf('}');
+    if (s2 >= 0 && e2 > s2) t = t.slice(s2, e2 + 1);
+    const parsed = JSON.parse(t) as { score?: unknown; comment?: unknown };
+    const score = Math.max(0, Math.min(100, Math.round(Number(parsed.score))));
+    if (Number.isNaN(score)) throw new Error('AI 評分格式錯誤,請再試一次');
+    return { score, comment: String(parsed.comment ?? '') };
+  };
+
   const mistakeQuestions: Question[] = useMemo(() => {
     const ids = new Set(loadMistakes(bank.bankId).map(m => m.id));
     return bank.questions.filter(q => ids.has(q.id));
@@ -119,6 +142,7 @@ function GameShell({
 
   const handleStart = (m: Mode) => {
     if (m === 'phantom') { handlePhantom(); return; }
+    if (m === 'essay' && !settings.apiKey) { showToast('申論題需要 AI 評分,請先到設定填入 API Key'); return; }
     const filters = { subject: null, category: null }; // 篩選 UI 待第五階段補
     const res = game.start(m, filters, m === 'mistake' ? mistakeQuestions : undefined);
     if (!res.ok) { showToast(res.msg ?? '無法開始'); return; }
@@ -161,6 +185,7 @@ function GameShell({
           phantomLoading={phantomLoading}
           streakDays={streak?.current ?? 0}
           onOpenStreak={() => setShowStreak(true)}
+          essayCount={bank.questions.filter(q => q.type === 'essay').length}
           onStart={handleStart}
           onOpenBankPicker={() => setShowPicker(true)}
           onOpenSettings={() => setShowSettings(true)}
@@ -170,6 +195,7 @@ function GameShell({
         <Quiz game={game}
           onQuit={() => { game.quit(); setView('menu'); }}
           onAiExplain={settings.apiKey ? handleAiExplain : undefined}
+          onGradeEssay={settings.apiKey ? handleGradeEssay : undefined}
           devMode={settings.devMode} />
       )}
       {view === 'result' && (
@@ -185,6 +211,8 @@ function GameShell({
       {showSettings && (
         <Settings settings={settings} onSave={onSaveSettings} onClose={() => setShowSettings(false)} />
       )}
+
+      {showTutorial && <Tutorial onDone={onTutorialDone} />}
 
       {showStreak && streak && (
         <StreakCalendar streak={streak} onClose={() => setShowStreak(false)} />

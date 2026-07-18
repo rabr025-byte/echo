@@ -12,6 +12,7 @@ interface Props {
   phantomLoading: boolean;
   streakDays: number;
   onOpenStreak: () => void;
+  essayCount: number;
   onStart: (m: Mode) => void;
   onOpenBankPicker: () => void;
   onOpenSettings: () => void;
@@ -26,7 +27,7 @@ const SUB_MODES: { id: Mode; label: string; hint: string }[] = [
 ];
 
 export const Menu = ({
-  bank, mistakeCount, hasApiKey, phantomLoading, streakDays, onOpenStreak,
+  bank, mistakeCount, hasApiKey, phantomLoading, streakDays, onOpenStreak, essayCount,
   onStart, onOpenBankPicker, onOpenSettings, onOpenAiGenerate,
 }: Props) => {
   const daily = loadDaily();
@@ -34,7 +35,7 @@ export const Menu = ({
   <div className="min-h-screen flex flex-col px-5 py-8 max-w-md mx-auto w-full">
     {/* 頂列:題庫切換 + 設定 */}
     <div className="flex justify-between items-center mb-8">
-      <button onClick={onOpenBankPicker}
+      <button onClick={onOpenBankPicker} data-tour="bank"
         className="flex items-center gap-1.5 text-fg-dim text-sm tracking-widest active:scale-95 transition-transform">
         <span className="w-1.5 h-1.5 rounded-full bg-accent glow-accent" />
         {bank.displayName}
@@ -64,7 +65,7 @@ export const Menu = ({
     </div>
 
     {/* 主打卡片:標準 */}
-    <button onClick={() => onStart('normal')}
+    <button onClick={() => onStart('normal')} data-tour="start"
       className="card-rise w-full p-6 rounded-3xl bg-accent text-accent-fg text-left active:scale-[0.98] transition-transform mb-3 relative overflow-hidden"
       style={{ animationDelay: '0.05s' }}>
       <div className="text-2xl font-black tracking-widest mb-1">開始挑戰</div>
@@ -73,7 +74,7 @@ export const Menu = ({
     </button>
 
     {/* 次要模式(橫排三個) */}
-    <div className="grid grid-cols-3 gap-3 mb-3">
+    <div className="grid grid-cols-3 gap-3 mb-3" data-tour="modes">
       {SUB_MODES.map((m, i) => (
         <button key={m.id} onClick={() => onStart(m.id)}
           className="card-rise p-4 rounded-2xl border border-theme-border bg-card active:scale-[0.96] transition-transform"
@@ -94,8 +95,19 @@ export const Menu = ({
       </span>
     </button>
 
+    {/* 申論挑戰(題庫有申論題才出現) */}
+    {essayCount > 0 && (
+      <button onClick={() => onStart('essay')}
+        className="card-rise w-full p-4 rounded-2xl border border-theme-border bg-card active:scale-[0.98] transition-transform mb-3 flex justify-between items-center"
+        style={{ animationDelay: '0.24s' }}>
+        <span className="text-base font-bold tracking-widest">✍️ 申論挑戰</span>
+        <span className="text-fg-dim text-xs">{essayCount} 題 · AI 評分</span>
+      </button>
+    )}
+
     {/* 每日任務 */}
     <div className="card-rise w-full p-4 rounded-2xl border border-theme-border bg-card mb-6"
+      data-tour="daily"
       style={{ animationDelay: '0.26s' }}>
       <div className="flex justify-between items-center mb-3">
         <span className="text-[10px] text-fg-dim tracking-[0.3em] uppercase">今日任務</span>
@@ -114,7 +126,7 @@ export const Menu = ({
     </div>
 
     {/* AI 區(強調,放底部有分隔) */}
-    <div className="mt-auto pt-5 border-t border-theme-border flex flex-col gap-3">
+    <div className="mt-auto pt-5 border-t border-theme-border flex flex-col gap-3" data-tour="ai">
       <div className="text-fg-dim text-[10px] tracking-[0.3em] uppercase">AI 功能</div>
       <button onClick={() => onStart('phantom')} disabled={phantomLoading}
         className="w-full p-4 rounded-2xl border border-accent/40 bg-accent/10 active:scale-[0.98] transition-transform text-left flex items-center justify-between disabled:opacity-50">
