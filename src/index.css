@@ -34,9 +34,14 @@ body {
   color: var(--fg);
   font-family: system-ui, -apple-system, 'Noto Sans TC', sans-serif;
   transition: background 0.4s ease, color 0.4s ease;
-  /* iOS 瀏海/狀態列安全區,避免內容被蓋住 */
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* iOS 安全區容器:內容整個往下推,避開瀏海/狀態列(參考播種計畫做法) */
+.safe-top {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+}
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
 }
 
 /* 遊戲動畫 */

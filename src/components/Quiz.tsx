@@ -96,7 +96,7 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
   };
 
   return (
-    <div className={`min-h-screen max-w-md mx-auto w-full px-5 py-6 flex flex-col ${shake ? 'animate-[shake_0.4s]' : ''}`}>
+    <div className={`min-h-screen max-w-md mx-auto w-full px-5 pb-6 flex flex-col safe-top ${shake ? 'animate-[shake_0.4s]' : ''}`}>
       {/* 答對全畫面綠色脈衝 */}
       {hitPulse > 0 && (
         <div key={`pulse-${hitPulse}`} className="fixed inset-0 z-30 pointer-events-none animate-hit-pulse"

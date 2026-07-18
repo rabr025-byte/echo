@@ -48,7 +48,7 @@ export const Result = ({ game, onReplay, onMenu }: Props) => {
   }, [g.celebrate]);
 
   return (
-    <div className="min-h-screen max-w-md mx-auto w-full px-6 py-12 flex flex-col items-center justify-center gap-8 relative overflow-hidden">
+    <div className="min-h-screen max-w-md mx-auto w-full px-6 pb-12 flex flex-col items-center justify-center gap-8 relative overflow-hidden safe-top">
       {/* 慶祝粒子(從底部往上噴) */}
       <div className="fixed inset-0 pointer-events-none flex items-end justify-center pb-20">
         {particles.map(p => (

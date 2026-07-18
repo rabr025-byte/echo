@@ -33,7 +33,7 @@ export const Menu = ({
 }: Props) => {
   const daily = loadDaily();
   return (
-  <div className="min-h-screen flex flex-col px-5 py-8 max-w-md mx-auto w-full">
+  <div className="min-h-screen flex flex-col px-5 pb-8 max-w-md mx-auto w-full safe-top">
     {/* 頂列:題庫切換 + 設定 */}
     <div className="flex justify-between items-center mb-8">
       <button onClick={onOpenBankPicker} data-tour="bank"
