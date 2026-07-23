@@ -9,6 +9,7 @@ import { applyTheme } from './lib/themes';
 import { checkInToday, type StreakData } from './lib/streak';
 import { StreakCalendar } from './components/StreakCalendar';
 import { Tutorial, isTutorialDone } from './components/Tutorial';
+import { BankGuide } from './components/BankGuide';
 import type { AISettings } from './lib/ai/types';
 import { getProvider } from './lib/ai';
 import { explainPrompt, phantomPrompt, gradeEssayPrompt } from './lib/ai/prompts';
@@ -111,6 +112,7 @@ function GameShell({
   const game = useGame(bank);
   const [toast, setToast] = useState('');
   const [showGen, setShowGen] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const [phantomLoading, setPhantomLoading] = useState(false);
 
   // AI 詳解 handler
@@ -209,7 +211,8 @@ function GameShell({
       )}
 
       {showSettings && (
-        <Settings settings={settings} onSave={onSaveSettings} onClose={() => setShowSettings(false)} />
+        <Settings settings={settings} onSave={onSaveSettings} onClose={() => setShowSettings(false)}
+          onOpenGuide={() => setShowGuide(true)} />
       )}
 
       {showTutorial && <Tutorial onDone={onTutorialDone} />}
@@ -217,6 +220,8 @@ function GameShell({
       {showStreak && streak && (
         <StreakCalendar streak={streak} onClose={() => setShowStreak(false)} />
       )}
+
+      {showGuide && <BankGuide onClose={() => setShowGuide(false)} />}
 
       {showGen && (
         <AiGenerate settings={settings}

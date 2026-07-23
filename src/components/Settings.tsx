@@ -9,9 +9,10 @@ interface Props {
   settings: AISettings;
   onSave: (s: AISettings) => void;
   onClose: () => void;
+  onOpenGuide: () => void;
 }
 
-export const Settings = ({ settings, onSave, onClose }: Props) => {
+export const Settings = ({ settings, onSave, onClose, onOpenGuide }: Props) => {
   const [draft, setDraft] = useState<AISettings>(settings);
   const [saved, setSaved] = useState(false);
 
@@ -122,6 +123,11 @@ export const Settings = ({ settings, onSave, onClose }: Props) => {
             </div>
           ))}
         </div>
+
+        <button onClick={onOpenGuide}
+          className="w-full py-3 mb-3 rounded-xl border border-theme-border text-fg/70 text-sm font-bold tracking-widest active:scale-[0.98] transition-all">
+          📝 自己做題庫(取得 AI 指令)
+        </button>
 
         <div className="flex gap-3">
           <button onClick={handleClose}
