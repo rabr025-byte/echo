@@ -10,6 +10,8 @@ import { checkInToday, type StreakData } from './lib/streak';
 import { StreakCalendar } from './components/StreakCalendar';
 import { Tutorial, isTutorialDone } from './components/Tutorial';
 import { BankGuide } from './components/BankGuide';
+import { StatsPanel } from './components/StatsPanel';
+import { loadBanks, getActiveBankId, setActiveBankId } from './lib/bankStore';
 import type { AISettings } from './lib/ai/types';
 import { getProvider } from './lib/ai';
 import { explainPrompt, phantomPrompt, gradeEssayPrompt } from './lib/ai/prompts';
@@ -25,6 +27,7 @@ type View = 'loading' | 'menu' | 'quiz' | 'result';
 
 export const App = () => {
   const [bank, setBank] = useState<QuestionBank | null>(null);
+  const [defaultBank, setDefaultBank] = useState<QuestionBank | null>(null);
   const [loadError, setLoadError] = useState('');
   const [view, setView] = useState<View>('loading');
   const [showPicker, setShowPicker] = useState(false);
@@ -54,7 +57,14 @@ export const App = () => {
   useEffect(() => {
     fetch('/banks/ipas_bank.json')
       .then(r => { if (!r.ok) throw new Error(`載入失敗 (${r.status})`); return r.json(); })
-      .then((data: QuestionBank) => { setBank(data); setView('menu'); })
+      .then((data: QuestionBank) => {
+        setDefaultBank(data);
+        // 若上次用的是自己上傳的題庫,自動還原
+        const activeId = getActiveBankId();
+        const savedBank = activeId ? loadBanks().find(b => b.bankId === activeId) : null;
+        setBank(savedBank ?? data);
+        setView('menu');
+      })
       .catch(e => setLoadError(e.message));
   }, []);
 
@@ -88,7 +98,8 @@ export const App = () => {
     showTutorial={showTutorial} onTutorialDone={() => setShowTutorial(false)}
     streak={streak}
     showStreak={showStreak} setShowStreak={setShowStreak}
-    onPickBank={(b) => { setBank(b); setShowPicker(false); setView('menu'); }}
+    defaultBank={defaultBank}
+    onPickBank={(b) => { setBank(b); setActiveBankId(b.bankId); setShowPicker(false); setView('menu'); }}
   />;
 };
 
@@ -96,7 +107,8 @@ export const App = () => {
 function GameShell({
   bank, view, setView, showPicker, setShowPicker,
   showSettings, setShowSettings, settings, onSaveSettings,
-  mistakeCount, showTutorial, onTutorialDone, streak, showStreak, setShowStreak, onPickBank,
+  mistakeCount, showTutorial, onTutorialDone, streak, showStreak, setShowStreak,
+  defaultBank, onPickBank,
 }: {
   bank: QuestionBank;
   view: View; setView: (v: View) => void;
@@ -107,12 +119,14 @@ function GameShell({
   showTutorial: boolean; onTutorialDone: () => void;
   streak: StreakData | null;
   showStreak: boolean; setShowStreak: (b: boolean) => void;
+  defaultBank: QuestionBank | null;
   onPickBank: (b: QuestionBank) => void;
 }) {
   const game = useGame(bank);
   const [toast, setToast] = useState('');
   const [showGen, setShowGen] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [showStats, setShowStats] = useState(false);
   const [phantomLoading, setPhantomLoading] = useState(false);
 
   // AI 詳解 handler
@@ -188,6 +202,7 @@ function GameShell({
           streakDays={streak?.current ?? 0}
           onOpenStreak={() => setShowStreak(true)}
           essayCount={bank.questions.filter(q => q.type === 'essay').length}
+          onOpenStats={() => setShowStats(true)}
           onStart={handleStart}
           onOpenBankPicker={() => setShowPicker(true)}
           onOpenSettings={() => setShowSettings(true)}
@@ -207,7 +222,7 @@ function GameShell({
       )}
 
       {showPicker && (
-        <BankPicker current={bank} onPick={onPickBank} onClose={() => setShowPicker(false)} />
+        <BankPicker current={bank} defaultBank={defaultBank} onPick={onPickBank} onClose={() => setShowPicker(false)} />
       )}
 
       {showSettings && (
@@ -222,6 +237,8 @@ function GameShell({
       )}
 
       {showGuide && <BankGuide onClose={() => setShowGuide(false)} />}
+
+      {showStats && <StatsPanel bank={bank} onClose={() => setShowStats(false)} />}
 
       {showGen && (
         <AiGenerate settings={settings}

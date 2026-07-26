@@ -4,7 +4,7 @@
 import type { QuestionBank } from '../types/bank';
 import type { Mode } from '../lib/useGame';
 import { loadDaily } from '../lib/daily';
-import { Flame, PenLine, Sparkles, ChevronDown, CheckCircle2 } from 'lucide-react';
+import { Flame, PenLine, Sparkles, ChevronDown, CheckCircle2, BarChart3 } from 'lucide-react';
 
 interface Props {
   bank: QuestionBank;
@@ -14,6 +14,7 @@ interface Props {
   streakDays: number;
   onOpenStreak: () => void;
   essayCount: number;
+  onOpenStats: () => void;
   onStart: (m: Mode) => void;
   onOpenBankPicker: () => void;
   onOpenSettings: () => void;
@@ -28,7 +29,7 @@ const SUB_MODES: { id: Mode; label: string; hint: string }[] = [
 ];
 
 export const Menu = ({
-  bank, mistakeCount, hasApiKey, phantomLoading, streakDays, onOpenStreak, essayCount,
+  bank, mistakeCount, hasApiKey, phantomLoading, streakDays, onOpenStreak, essayCount, onOpenStats,
   onStart, onOpenBankPicker, onOpenSettings, onOpenAiGenerate,
 }: Props) => {
   const daily = loadDaily();
@@ -50,6 +51,10 @@ export const Menu = ({
             <Flame size={16} fill="currentColor" />{streakDays}
           </button>
         )}
+        <button onClick={onOpenStats}
+          className="text-fg-dim active:scale-95 transition-transform">
+          <BarChart3 size={17} />
+        </button>
         <button onClick={onOpenSettings}
           className="text-fg-dim text-sm tracking-widest active:scale-95 transition-transform">
           設定
