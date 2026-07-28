@@ -55,7 +55,7 @@ export const App = () => {
 
   // 載入預設題庫
   useEffect(() => {
-    fetch('/banks/ipas_bank.json')
+    fetch('/banks/echo_sample.json')
       .then(r => { if (!r.ok) throw new Error(`載入失敗 (${r.status})`); return r.json(); })
       .then((data: QuestionBank) => {
         setDefaultBank(data);
