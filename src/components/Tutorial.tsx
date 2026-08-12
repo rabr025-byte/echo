@@ -11,13 +11,13 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { target: '', title: '歡迎來到 Echo', text: '把刷題變成遊戲。跟著我走一圈,30 秒就上手。' },
-  { target: 'bank', title: '題庫', text: '點這裡可以換題庫、上傳你自己的題庫 JSON。' },
-  { target: 'start', title: '開始挑戰', text: '主戰場。隨機 10 題,答對疊 combo,答錯碎一顆心。' },
+  { target: '', title: '歡迎來到 Echo', text: '把刷題變成遊戲。目前載入的是 19 題的範例題庫,讓你先試玩;真正的用法是換上你自己的內容。跟著走一圈,30 秒上手。' },
+  { target: 'bank', title: '這裡換成你的題庫', text: 'Echo 的核心是「題庫可以換」。點這裡上傳你自己的 JSON 題庫——考證照、背單字、讀書筆記、甚至食譜都可以。上傳後會自動儲存,下次打開還在。' },
+  { target: 'start', title: '開始挑戰', text: '主戰場。答對疊 combo 加分,答錯碎一顆心,五顆心用完就結束。' },
   { target: 'modes', title: '更多模式', text: '進階 50 題、限時衝刺、極限一錯即死——各有玩法。' },
-  { target: 'daily', title: '今日任務', text: '每天三個小目標,全完成有慶祝。記得每天回來點亮連續登入' },
-  { target: 'ai', title: 'AI 功能', text: '填入 API Key 後,AI 可以即時出題、解讀題目、把你的筆記變成題庫。' },
-  { target: '', title: '準備好了', text: '答題時試試「押賭注」——分數翻倍,但答錯扣兩顆心。開始吧!' },
+  { target: 'daily', title: '今日任務', text: '每天三個小目標,全完成有慶祝。記得每天回來點亮連續登入。' },
+  { target: 'ai', title: 'AI 幫你做題庫', text: '不想手寫題庫?填入 API Key 後,把你的筆記或教材貼給 AI,它會直接生成一整套題目。設定裡也有現成的指令可以複製給 ChatGPT 用。' },
+  { target: '', title: '準備好了', text: '先玩範例題熟悉一下,然後記得換上自己的題庫——那才是 Echo 真正好玩的地方。答題時也試試「押賭注」,分數翻倍但答錯扣兩顆心。' },
 ];
 
 const KEY = 'echo:tutorial_done';

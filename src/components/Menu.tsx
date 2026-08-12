@@ -68,6 +68,13 @@ export const Menu = ({
       <p className="text-fg-dim text-xs tracking-[0.3em] mt-2">
         {bank.questions.length} 題待挑戰
       </p>
+      {bank.bankId === 'echo-sample-default' && (
+        <button onClick={onOpenBankPicker}
+          className="mt-3 text-[11px] leading-relaxed text-left px-3 py-2 rounded-xl border border-accent/30 bg-accent/5 active:scale-[0.98] transition-transform">
+          <span style={{ color: 'var(--accent)' }} className="font-bold">這是範例題庫 · </span>
+          <span className="text-fg-dim">點此換上你自己的題目 →</span>
+        </button>
+      )}
     </div>
 
     {/* 主打卡片:標準 */}
