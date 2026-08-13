@@ -18,27 +18,49 @@ export const BankPicker = ({ current, defaultBank, onPick, onClose }: Props) => 
   const [saved, setSaved] = useState<QuestionBank[]>(loadBanks);
   const [confirmDel, setConfirmDel] = useState<string>('');
 
-  const handleFile = (file: File) => {
+  // 支援一次選取多個檔案;每個檔案可以是單一題庫或多題庫陣列
+  const handleFiles = async (files: FileList) => {
     setErrors([]);
-    const reader = new FileReader();
-    reader.onload = () => {
+    const okBanks: QuestionBank[] = [];
+    const allErrors: string[] = [];
+
+    for (const file of Array.from(files)) {
+      const text = await file.text().catch(() => null);
+      if (text === null) { allErrors.push(`${file.name}:讀取失敗`); continue; }
+
       let parsed: unknown;
-      try { parsed = JSON.parse(reader.result as string); }
-      catch { setErrors(['這個檔案不是有效的 JSON 格式']); return; }
-
-      const result = validateBank(parsed);
-      if (!result.ok) { setErrors(result.errors); return; }
-
-      try {
-        const list = saveBank(result.bank!);   // 存進 localStorage,重開仍在
-        setSaved(list);
-        onPick(result.bank!);
-      } catch (e) {
-        setErrors([e instanceof Error ? e.message : '儲存失敗']);
+      try { parsed = JSON.parse(text); }
+      catch {
+        allErrors.push(`${file.name}:JSON 格式錯誤(若是自己合併多批內容,常見原因是少了逗號或中括號。建議不要手動合併,直接一次選取多個檔案上傳)`);
+        continue;
       }
-    };
-    reader.onerror = () => setErrors(['讀取檔案失敗']);
-    reader.readAsText(file);
+
+      const rawBanks = Array.isArray(parsed) ? parsed : [parsed];
+      rawBanks.forEach((raw, i) => {
+        const result = validateBank(raw);
+        const prefix = files.length > 1 || rawBanks.length > 1
+          ? `${file.name}${rawBanks.length > 1 ? ` 第 ${i + 1} 份` : ''}:` : '';
+        if (result.ok) okBanks.push(result.bank!);
+        else result.errors.forEach(e => allErrors.push(prefix + e));
+      });
+    }
+
+    if (okBanks.length === 0) {
+      setErrors(allErrors.length ? allErrors : ['沒有找到可用的題庫']);
+      return;
+    }
+
+    try {
+      let list = saved;
+      okBanks.forEach(b => { list = saveBank(b); });
+      setSaved(list);
+      if (allErrors.length > 0) {
+        setErrors([`已匯入 ${okBanks.length} 份題庫,以下未匯入:`, ...allErrors]);
+      }
+      onPick(okBanks[0]);
+    } catch (e) {
+      setErrors([e instanceof Error ? e.message : '儲存失敗']);
+    }
   };
 
   const handleDelete = (bankId: string) => {
@@ -93,12 +115,12 @@ export const BankPicker = ({ current, defaultBank, onPick, onClose }: Props) => 
         </div>
 
         <label className="block w-full p-5 rounded-xl border border-dashed border-theme-border text-center cursor-pointer active:scale-[0.98] transition-transform">
-          <input type="file" accept=".json,application/json" className="hidden"
-            onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+          <input type="file" accept=".json,application/json" multiple className="hidden"
+            onChange={e => { const fs = e.target.files; if (fs && fs.length) handleFiles(fs); }} />
           <div className="flex items-center justify-center gap-2 text-sm font-bold tracking-widest">
             <Upload size={15} /> 上傳題庫檔案
           </div>
-          <div className="text-fg-dim text-[10px] mt-1">上傳後會自動儲存,下次開啟仍在</div>
+          <div className="text-fg-dim text-[10px] mt-1">可一次選多個檔案 · 上傳後自動儲存,下次開啟仍在</div>
         </label>
 
         {errors.length > 0 && (

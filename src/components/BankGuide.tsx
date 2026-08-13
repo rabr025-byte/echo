@@ -30,33 +30,43 @@ const FORMAT_BLOCK = `{
   ]
 }`;
 
-const EXAM_PROMPT = `請根據我提供的資料,製作一份刷題題庫 JSON。嚴格遵守以下格式,只輸出 JSON,不要其他文字:
+const RULES_COMMON = `**輸出規則**
+- 只輸出 JSON,不要任何說明文字、不要用 \`\`\`json 包起來
+- 全部使用繁體中文
+- 不要加來源標記(如 [1]、[2])
 
+**格式**
 ${FORMAT_BLOCK}
 
-規則:
-1. answer 是正確選項的索引,從 0 開始(第一個選項=0)
-2. id 不可重複,選擇題用 q1,q2…,申論題用 e1,e2…
-3. 選擇題 20 題、申論題 5 題
-4. 申論題必須有 rubric、options 填 []、answer 填 0
-5. 全部使用繁體中文
-6. 難度依資料深度出題,錯誤選項要合理但可辨別
-7. 不要在文字裡加來源標記(如 [1]、[2])`;
+**數量與分批**
+- 目標:選擇題 50 題 + 申論題 10 題
+- 若內容太多無法一次輸出完,請先輸出前 25 題選擇題 + 5 題申論,結尾加一行 <!-- 尚有後續 -->,我會說「繼續」,你再輸出下一批(id 接續編號,bankId 加上 -part2)
 
-const LIFE_PROMPT = `請根據我提供的資料,製作一份問答遊戲題庫 JSON。嚴格遵守以下格式,只輸出 JSON,不要其他文字:
+**基本要求**
+- answer 是正確選項的索引,從 0 開始(第一個選項 = 0)
+- id 不可重複:選擇題 q1、q2…,申論題 e1、e2…
+- 申論題必須有 rubric,options 填 [],answer 填 0
+- 詳解精簡,控制在 30 字內(避免輸出過長)`;
 
-${FORMAT_BLOCK}
+const EXAM_PROMPT = `我會提供一份文件/教材。請根據內容製作刷題題庫 JSON。
 
-規則:
-1. answer 是正確選項的索引,從 0 開始
-2. id 不可重複,選擇題用 q1,q2…,申論題用 e1,e2…
-3. 選擇題 20 題、申論題 5 題
-4. 申論題必須有 rubric、options 填 []、answer 填 0
-5. 全部繁體中文
-6. 出題角度多元,不要只考死記:可考原理(為什麼)、判斷(某情況怎麼辦)、比較(A與B差別)、應用(換情境怎麼調整)
-7. 錯誤選項要合理但可辨別
-8. explanation 除了說明答案,盡量補一個有用的小知識
-9. 不要在文字裡加來源標記(如 [1]、[2])`;
+${RULES_COMMON}
+
+**出題要求**
+- 貼近考點,難度依教材深度
+- 錯誤選項要合理但可辨別,不要明顯荒謬
+- 涵蓋文件各章節,不要集中在同一段
+- 申論題的 rubric 要具體列出應提到的關鍵概念`;
+
+const LIFE_PROMPT = `我會提供一份資料(筆記/食譜/書摘等)。請根據內容製作問答遊戲題庫 JSON。
+
+${RULES_COMMON}
+
+**出題要求**
+- 出題角度多元,不要只考死記:可考原理(為什麼)、判斷(某情況怎麼辦)、比較(A與B差別)、應用(換情境怎麼調整)
+- 錯誤選項要合理但可辨別
+- explanation 除了說明答案,盡量補一個有用的小知識
+- 申論題設計成開放討論,rubric 列出合理的評分方向`;
 
 export const BankGuide = ({ onClose }: Props) => {
   const [copied, setCopied] = useState<string>('');
@@ -84,7 +94,8 @@ export const BankGuide = ({ onClose }: Props) => {
           <button onClick={onClose} className="text-fg-dim"><X size={20} /></button>
         </div>
         <p className="text-fg-dim text-xs leading-relaxed mb-5">
-          把下面的指令複製給 ChatGPT、Claude 或 NotebookLM,連同你的教材/筆記一起貼上,它會生成題庫 JSON。存成 .json 檔後,從題庫選單上傳即可。
+          複製下面的指令,連同你的教材(PDF、筆記、講義都可以)一起丟給 ChatGPT、Claude、Gemini 等任何 AI。
+          它會生成題庫 JSON,你把內容存成 .json 檔,再從題庫選單上傳即可。指令已內建分批機制,可產出 50 題以上。
         </p>
 
         {/* 考試導向 */}
@@ -107,9 +118,18 @@ export const BankGuide = ({ onClose }: Props) => {
 
         {/* 分批提示 */}
         <div className="mb-5 p-4 rounded-2xl border border-accent/30 bg-accent/5">
-          <div className="text-sm font-bold tracking-widest mb-2">💡 資料很多怎麼辦?</div>
+          <div className="text-sm font-bold tracking-widest mb-2">💡 想要 100 題以上?</div>
           <p className="text-fg-dim text-[11px] leading-relaxed">
-            AI 單次輸出有長度限制,一次約生 25 題。若教材很長,分批下指令,例如「先針對第 3 章出 25 題」「再針對第 4 章出 25 題」。每份各自上傳成獨立題庫即可,進度互不影響。
+            所有 AI 單次輸出都有長度上限,約 25-50 題。指令已內建分批機制:AI 輸出第一批後會標示「尚有後續」,你回覆「繼續」即可拿到下一批。
+            每批各自存檔上傳,或把多批合併成一個中括號 [ ] 的陣列一次上傳都可以。
+          </p>
+        </div>
+
+        {/* 多題庫說明 */}
+        <div className="mb-5 p-4 rounded-2xl border border-theme-border bg-card">
+          <div className="text-sm font-bold tracking-widest mb-2">一個檔案有多份題庫?</div>
+          <p className="text-fg-dim text-[11px] leading-relaxed">
+            AI 有時會一次生出好幾份題庫,包在一個中括號 [ ] 的陣列裡。這種檔案可以直接上傳,Echo 會自動全部匯入成獨立題庫,不用手動拆開。
           </p>
         </div>
 
