@@ -4,12 +4,13 @@ import { useState } from 'react';
 import type { QuestionBank } from '../types/bank';
 import { validateBank } from '../lib/validateBank';
 import { loadBanks, saveBank, deleteBank, storageUsage } from '../lib/bankStore';
-import { Trash2, Upload, X, Check } from 'lucide-react';
+import { Trash2, Upload, X, Check, Square, CheckSquare } from 'lucide-react';
+import { mergeBanks } from '../lib/composeBank';
 
 interface Props {
   current: QuestionBank;
   defaultBank: QuestionBank | null;   // 內建預設題庫(不可刪除)
-  onPick: (bank: QuestionBank) => void;
+  onPick: (banks: QuestionBank[]) => void;   // 可回傳多份(複選一起測驗)
   onClose: () => void;
 }
 
@@ -17,6 +18,19 @@ export const BankPicker = ({ current, defaultBank, onPick, onClose }: Props) => 
   const [errors, setErrors] = useState<string[]>([]);
   const [saved, setSaved] = useState<QuestionBank[]>(loadBanks);
   const [confirmDel, setConfirmDel] = useState<string>('');
+  const [picked, setPicked] = useState<Set<string>>(new Set());   // 複選:一起測驗的題庫
+
+  const allBanks = [...(defaultBank ? [defaultBank] : []), ...saved];
+  const togglePick = (bankId: string) =>
+    setPicked(prev => {
+      const next = new Set(prev);
+      if (next.has(bankId)) next.delete(bankId); else next.add(bankId);
+      return next;
+    });
+  const startWithPicked = () => {
+    const chosen = allBanks.filter(b => picked.has(b.bankId));
+    if (chosen.length > 0) onPick(chosen);
+  };
 
   // 支援一次選取多個檔案;每個檔案可以是單一題庫或多題庫陣列
   const handleFiles = async (files: FileList) => {
@@ -36,13 +50,16 @@ export const BankPicker = ({ current, defaultBank, onPick, onClose }: Props) => 
       }
 
       const rawBanks = Array.isArray(parsed) ? parsed : [parsed];
+      // 同一個檔案裡的多份通常是 AI 分批輸出的同一套題,合併成一份
+      const validInFile: QuestionBank[] = [];
       rawBanks.forEach((raw, i) => {
         const result = validateBank(raw);
         const prefix = files.length > 1 || rawBanks.length > 1
           ? `${file.name}${rawBanks.length > 1 ? ` 第 ${i + 1} 份` : ''}:` : '';
-        if (result.ok) okBanks.push(result.bank!);
+        if (result.ok) validInFile.push(result.bank!);
         else result.errors.forEach(e => allErrors.push(prefix + e));
       });
+      if (validInFile.length > 0) okBanks.push(mergeBanks(validInFile));
     }
 
     if (okBanks.length === 0) {
@@ -57,7 +74,7 @@ export const BankPicker = ({ current, defaultBank, onPick, onClose }: Props) => 
       if (allErrors.length > 0) {
         setErrors([`已匯入 ${okBanks.length} 份題庫,以下未匯入:`, ...allErrors]);
       }
-      onPick(okBanks[0]);
+      onPick([okBanks[0]]);
     } catch (e) {
       setErrors([e instanceof Error ? e.message : '儲存失敗']);
     }
@@ -69,27 +86,37 @@ export const BankPicker = ({ current, defaultBank, onPick, onClose }: Props) => 
     setSaved(list);
     setConfirmDel('');
     // 刪掉的正是使用中的 → 切回預設題庫
-    if (current.bankId === bankId && defaultBank) onPick(defaultBank);
+    if (current.bankId === bankId && defaultBank) onPick([defaultBank]);
   };
 
   const BankRow = ({ bank, deletable }: { bank: QuestionBank; deletable: boolean }) => {
     const isCurrent = bank.bankId === current.bankId;
+    const isPicked = picked.has(bank.bankId);
     const pendingDel = confirmDel === bank.bankId;
     return (
-      <div className={`p-4 rounded-xl border flex items-center justify-between gap-3 ${
-        isCurrent ? 'border-accent/50 bg-accent/10' : 'border-theme-border bg-card'
+      <div className={`p-3 rounded-xl border flex items-center gap-2 ${
+        isPicked ? 'border-accent/50 bg-accent/10'
+        : isCurrent ? 'border-accent/30 bg-card' : 'border-theme-border bg-card'
       }`}>
-        <button onClick={() => onPick(bank)} className="flex-1 text-left active:scale-[0.98] transition-transform">
-          <div className="flex items-center gap-2">
-            {isCurrent && <Check size={14} style={{ color: 'var(--accent)' }} />}
+        {/* 勾選:加入本次測驗 */}
+        <button onClick={() => togglePick(bank.bankId)}
+          className="p-1 active:scale-90 transition-transform"
+          style={{ color: isPicked ? 'var(--accent)' : 'var(--fg-dim)' }}>
+          {isPicked ? <CheckSquare size={18} /> : <Square size={18} />}
+        </button>
+
+        {/* 點名稱 = 直接單獨使用這份 */}
+        <button onClick={() => onPick([bank])} className="flex-1 text-left active:scale-[0.98] transition-transform">
+          <div className="flex items-center gap-1.5">
+            {isCurrent && <Check size={13} style={{ color: 'var(--accent)' }} />}
             <span className="font-bold text-sm">{bank.displayName}</span>
           </div>
           <div className="text-fg-dim text-[10px] mt-0.5">
             {bank.questions.length} 題
             {bank.questions.some(q => q.type === 'essay') && ' · 含申論'}
-            {bank.author && ` · ${bank.author}`}
           </div>
         </button>
+
         {deletable && (
           <button onClick={() => handleDelete(bank.bankId)}
             className={`p-2 rounded-lg active:scale-95 transition-all ${pendingDel ? 'bg-bad/20' : ''}`}
@@ -105,7 +132,10 @@ export const BankPicker = ({ current, defaultBank, onPick, onClose }: Props) => 
     <div className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-sm flex flex-col justify-end">
       <div className="max-w-md mx-auto w-full bg-bg border-t border-theme-border rounded-t-3xl p-6 pb-12 max-h-[85vh] overflow-y-auto safe-bottom">
         <div className="flex justify-between items-center mb-5">
-          <h2 className="text-lg font-bold tracking-widest">題庫</h2>
+          <div>
+            <h2 className="text-lg font-bold tracking-widest">題庫</h2>
+            <p className="text-fg-dim text-[10px] mt-0.5">點名稱單獨使用 · 勾選多份可一起測驗</p>
+          </div>
           <button onClick={onClose} className="text-fg-dim"><X size={20} /></button>
         </div>
 
@@ -113,6 +143,17 @@ export const BankPicker = ({ current, defaultBank, onPick, onClose }: Props) => 
           {defaultBank && <BankRow bank={defaultBank} deletable={false} />}
           {saved.map(b => <BankRow key={b.bankId} bank={b} deletable />)}
         </div>
+
+        {/* 複選後一起測驗 */}
+        {picked.size > 0 && (
+          <button onClick={startWithPicked}
+            className="w-full py-3.5 mb-4 rounded-xl bg-accent text-accent-fg font-bold tracking-widest active:scale-[0.98] transition-transform">
+            用選取的 {picked.size} 份題庫一起測驗
+            <span className="block text-[10px] font-normal opacity-70 mt-0.5">
+              共 {allBanks.filter(b => picked.has(b.bankId)).reduce((n, b) => n + b.questions.length, 0)} 題
+            </span>
+          </button>
+        )}
 
         <label className="block w-full p-5 rounded-xl border border-dashed border-theme-border text-center cursor-pointer active:scale-[0.98] transition-transform">
           <input type="file" accept=".json,application/json" multiple className="hidden"

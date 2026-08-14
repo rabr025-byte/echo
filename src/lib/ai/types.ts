@@ -17,6 +17,7 @@ export interface AISettings {
   vibrateEnabled: boolean;
   theme: 'midnight' | 'paper' | 'neon';
   devMode: boolean;   // 測試模式:答題頁出現自動答對按鈕
+  quizCount: number;  // 標準模式每局題數(0 = 全部)
 }
 
 export const DEFAULT_SETTINGS: AISettings = {
@@ -28,4 +29,5 @@ export const DEFAULT_SETTINGS: AISettings = {
   vibrateEnabled: true,
   theme: 'midnight',
   devMode: false,
+  quizCount: 10,
 };

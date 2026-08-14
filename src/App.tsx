@@ -12,6 +12,7 @@ import { Tutorial, isTutorialDone } from './components/Tutorial';
 import { BankGuide } from './components/BankGuide';
 import { StatsPanel } from './components/StatsPanel';
 import { loadBanks, getActiveBankId, setActiveBankId } from './lib/bankStore';
+import { composeBanks } from './lib/composeBank';
 import type { AISettings } from './lib/ai/types';
 import { getProvider } from './lib/ai';
 import { explainPrompt, phantomPrompt, gradeEssayPrompt } from './lib/ai/prompts';
@@ -99,7 +100,13 @@ export const App = () => {
     streak={streak}
     showStreak={showStreak} setShowStreak={setShowStreak}
     defaultBank={defaultBank}
-    onPickBank={(b) => { setBank(b); setActiveBankId(b.bankId); setShowPicker(false); setView('menu'); }}
+    onPickBank={(bs) => {
+      const composed = composeBanks(bs);
+      setBank(composed);
+      // 只有單一題庫才記為「下次自動載入」,組合是臨時的
+      if (bs.length === 1) setActiveBankId(bs[0].bankId);
+      setShowPicker(false); setView('menu');
+    }}
   />;
 };
 
@@ -120,7 +127,7 @@ function GameShell({
   streak: StreakData | null;
   showStreak: boolean; setShowStreak: (b: boolean) => void;
   defaultBank: QuestionBank | null;
-  onPickBank: (b: QuestionBank) => void;
+  onPickBank: (bs: QuestionBank[]) => void;
 }) {
   const game = useGame(bank);
   const [toast, setToast] = useState('');
@@ -150,8 +157,15 @@ function GameShell({
   };
 
   const mistakeQuestions: Question[] = useMemo(() => {
-    const ids = new Set(loadMistakes(bank.bankId).map(m => m.id));
-    return bank.questions.filter(q => ids.has(q.id));
+    // 組合題庫:每題各自去它來源題庫的錯題本比對
+    const cache = new Map<string, Set<string>>();
+    const idsOf = (bankId: string) => {
+      if (!cache.has(bankId)) cache.set(bankId, new Set(loadMistakes(bankId).map(m => m.id)));
+      return cache.get(bankId)!;
+    };
+    return bank.questions.filter(q =>
+      idsOf(q.sourceBankId ?? bank.bankId).has(q.sourceQuestionId ?? q.id)
+    );
   }, [bank]);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2000); };
@@ -160,7 +174,7 @@ function GameShell({
     if (m === 'phantom') { handlePhantom(); return; }
     if (m === 'essay' && !settings.apiKey) { showToast('申論題需要 AI 評分,請先到設定填入 API Key'); return; }
     const filters = { subject: null, category: null }; // 篩選 UI 待第五階段補
-    const res = game.start(m, filters, m === 'mistake' ? mistakeQuestions : undefined);
+    const res = game.start(m, filters, m === 'mistake' ? mistakeQuestions : undefined, settings.quizCount);
     if (!res.ok) { showToast(res.msg ?? '無法開始'); return; }
     setView('quiz');
   };
@@ -203,6 +217,8 @@ function GameShell({
           onOpenStreak={() => setShowStreak(true)}
           essayCount={bank.questions.filter(q => q.type === 'essay').length}
           onOpenStats={() => setShowStats(true)}
+          quizCount={settings.quizCount}
+          onChangeQuizCount={(n) => onSaveSettings({ ...settings, quizCount: n })}
           onStart={handleStart}
           onOpenBankPicker={() => setShowPicker(true)}
           onOpenSettings={() => setShowSettings(true)}
@@ -242,7 +258,7 @@ function GameShell({
 
       {showGen && (
         <AiGenerate settings={settings}
-          onGenerated={(b) => { setShowGen(false); onPickBank(b); }}
+          onGenerated={(b) => { setShowGen(false); onPickBank([b]); }}
           onClose={() => setShowGen(false)} />
       )}
 

@@ -15,6 +15,8 @@ interface Props {
   onOpenStreak: () => void;
   essayCount: number;
   onOpenStats: () => void;
+  quizCount: number;
+  onChangeQuizCount: (n: number) => void;
   onStart: (m: Mode) => void;
   onOpenBankPicker: () => void;
   onOpenSettings: () => void;
@@ -29,7 +31,7 @@ const SUB_MODES: { id: Mode; label: string; hint: string }[] = [
 ];
 
 export const Menu = ({
-  bank, mistakeCount, hasApiKey, phantomLoading, streakDays, onOpenStreak, essayCount, onOpenStats,
+  bank, mistakeCount, hasApiKey, phantomLoading, streakDays, onOpenStreak, essayCount, onOpenStats, quizCount, onChangeQuizCount,
   onStart, onOpenBankPicker, onOpenSettings, onOpenAiGenerate,
 }: Props) => {
   const daily = loadDaily();
@@ -82,9 +84,25 @@ export const Menu = ({
       className="card-rise w-full p-6 rounded-3xl bg-accent text-accent-fg text-left active:scale-[0.98] transition-transform mb-3 relative overflow-hidden"
       style={{ animationDelay: '0.05s' }}>
       <div className="text-2xl font-black tracking-widest mb-1">開始挑戰</div>
-      <div className="text-accent-fg/70 text-sm">隨機 10 題 · 標準模式</div>
+      <div className="text-accent-fg/70 text-sm">
+        隨機 {quizCount === 0 ? '全部' : quizCount} 題 · 標準模式
+      </div>
       <div className="absolute -right-6 -bottom-6 w-28 h-28 rounded-full bg-accent-fg/10" />
     </button>
+
+    {/* 題數選擇(套用標準模式) */}
+    <div className="card-rise flex items-center gap-2 mb-3 overflow-x-auto" style={{ animationDelay: '0.08s' }}>
+      <span className="text-fg-dim text-[10px] tracking-widest shrink-0">每局題數</span>
+      {[10, 25, 50, 100, 0].map(n => (
+        <button key={n} onClick={() => onChangeQuizCount(n)}
+          className={`shrink-0 px-3 py-1.5 rounded-full border text-[11px] font-bold tabular-nums transition-all active:scale-95 ${
+            quizCount === n ? 'border-accent/50 bg-accent/10' : 'border-theme-border text-fg-dim'
+          }`}
+          style={quizCount === n ? { color: 'var(--accent)' } : undefined}>
+          {n === 0 ? '全部' : n}
+        </button>
+      ))}
+    </div>
 
     {/* 次要模式(橫排三個) */}
     <div className="grid grid-cols-3 gap-3 mb-3" data-tour="modes">

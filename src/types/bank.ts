@@ -13,6 +13,8 @@ export interface Question {
   source?: string;       // 題目出處(選填)
   subject?: number;      // 科目編號(選填,考試類題庫用)
   category?: number;     // 分類編號(選填)
+  sourceBankId?: string;     // 組合題庫用:這題原本屬於哪個題庫
+  sourceQuestionId?: string; // 組合題庫用:這題在原題庫的 id
 }
 
 export interface QuestionBank {

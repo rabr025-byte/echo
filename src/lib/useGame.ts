@@ -70,6 +70,7 @@ export function useGame(bank: QuestionBank) {
     m: Mode,
     filters: { subject: number | null; category: number | null },
     externalQuestions?: Question[],
+    normalCount?: number,   // 標準模式的題數(null/0 = 全部)
   ) => {
     let qs: Question[];
     if (m === 'mistake') {
@@ -86,9 +87,12 @@ export function useGame(bank: QuestionBank) {
       if (pool.length === 0) return { ok: false, msg: '這個分類沒有題目' };
       if (m === 'speed') qs = pool; // 限時:全部照順序
       else if (m === 'sudden_death') qs = shuffle(pool);
-      else {
-        const count = m === 'hard' ? 50 : 10;
-        qs = shuffle(pool).slice(0, count);
+      else if (m === 'hard') {
+        qs = shuffle(pool).slice(0, 50);
+      } else {
+        // 標準模式:依使用者設定的題數,0 或未設定代表全部
+        const want = normalCount && normalCount > 0 ? normalCount : pool.length;
+        qs = shuffle(pool).slice(0, want);
       }
     }
     if (qs.length === 0) return { ok: false, msg: '沒有可用的題目' };
@@ -135,7 +139,10 @@ export function useGame(bank: QuestionBank) {
     const q = questions[currentIdx];
     const correct = idx === q.answer;
     setSelected(idx); setAnswered(true);
-    saveStat(bank.bankId, q.id, correct);
+    // 組合題庫時,題目層級的統計要寫回它原本所屬的題庫
+    const srcBank = q.sourceBankId ?? bank.bankId;
+    const srcQid = q.sourceQuestionId ?? q.id;
+    saveStat(srcBank, srcQid, correct);
 
     if (navigator.vibrate) navigator.vibrate(correct ? 30 : [50, 50, 50]);
 
@@ -161,7 +168,7 @@ export function useGame(bank: QuestionBank) {
       setCombo(0);
       pushFloat(x, y, `-${HP_LOSS}% HP`, 'bad');
       setShake(true); setTimeout(() => setShake(false), 500);
-      addMistake(bank.bankId, q.id);
+      addMistake(srcBank, srcQid);
       setHp(prev => {
         const nhp = prev - HP_LOSS * (stake ? 2 : 1); // 賭注答錯扣兩顆心
         if (nhp <= 0) setTimeout(() => finish(score, questions.length), 1000);
@@ -178,7 +185,9 @@ export function useGame(bank: QuestionBank) {
     const q = questions[currentIdx];
     const passed = score100 >= 60;
     setSelected(null); setAnswered(true);
-    saveStat(bank.bankId, q.id, passed);
+    const srcBank = q.sourceBankId ?? bank.bankId;
+    const srcQid = q.sourceQuestionId ?? q.id;
+    saveStat(srcBank, srcQid, passed);
     runTimestamps.current.push(timer);
     if (navigator.vibrate) navigator.vibrate(passed ? 30 : [50, 50, 50]);
     setStake(false);
@@ -201,7 +210,7 @@ export function useGame(bank: QuestionBank) {
       setCombo(0);
       pushFloat(window.innerWidth / 2, window.innerHeight / 3, `-${HP_LOSS}% HP`, 'bad');
       setShake(true); setTimeout(() => setShake(false), 500);
-      addMistake(bank.bankId, q.id);
+      addMistake(srcBank, srcQid);
       setHp(prev => {
         const nhp = prev - HP_LOSS * (stake ? 2 : 1);
         if (nhp <= 0) setTimeout(() => finish(score, questions.length), 1000);
