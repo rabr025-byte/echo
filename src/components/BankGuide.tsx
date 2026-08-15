@@ -14,6 +14,7 @@ const FORMAT_BLOCK = `{
   "questions": [
     {
       "id": "q1",
+      "source": "第3章 3.2 節",
       "question": "題目文字",
       "options": ["選項A", "選項B", "選項C", "選項D"],
       "answer": 0,
@@ -22,6 +23,7 @@ const FORMAT_BLOCK = `{
     {
       "id": "e1",
       "type": "essay",
+      "source": "第5章 風險管理",
       "question": "開放式問題",
       "options": [],
       "answer": 0,
@@ -46,7 +48,8 @@ ${FORMAT_BLOCK}
 - answer 是正確選項的索引,從 0 開始(第一個選項 = 0)
 - id 不可重複:選擇題 q1、q2…,申論題 e1、e2…
 - 申論題必須有 rubric,options 填 [],answer 填 0
-- 詳解精簡,控制在 30 字內(避免輸出過長)`;
+- 詳解精簡,控制在 30 字內(避免輸出過長)
+- **每一題都要有 source 欄位**,標明這題出自資料的哪個章節、頁碼或段落標題(例如「第3章 3.2 節」「114年第二梯次 第5題」)。找不到明確章節時,填該段落的主題名稱`;
 
 const EXAM_PROMPT = `我會提供一份文件/教材。請根據內容製作刷題題庫 JSON。
 
