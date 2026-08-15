@@ -6,6 +6,7 @@ import { validateBank } from '../lib/validateBank';
 import { loadBanks, saveBank, deleteBank, storageUsage } from '../lib/bankStore';
 import { Trash2, Upload, X, Check, Square, CheckSquare } from 'lucide-react';
 import { mergeBanks } from '../lib/composeBank';
+import { parseBankJson } from '../lib/parseBankJson';
 
 interface Props {
   current: QuestionBank;
@@ -42,12 +43,9 @@ export const BankPicker = ({ current, defaultBank, onPick, onClose }: Props) => 
       const text = await file.text().catch(() => null);
       if (text === null) { allErrors.push(`${file.name}:讀取失敗`); continue; }
 
-      let parsed: unknown;
-      try { parsed = JSON.parse(text); }
-      catch {
-        allErrors.push(`${file.name}:JSON 格式錯誤(若是自己合併多批內容,常見原因是少了逗號或中括號。建議不要手動合併,直接一次選取多個檔案上傳)`);
-        continue;
-      }
+      const pr = parseBankJson(text);
+      if (!pr.ok) { allErrors.push(`${file.name}:${pr.error}`); continue; }
+      const parsed = pr.data;
 
       const rawBanks = Array.isArray(parsed) ? parsed : [parsed];
       // 同一個檔案裡的多份通常是 AI 分批輸出的同一套題,合併成一份
