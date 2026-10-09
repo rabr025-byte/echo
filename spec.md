@@ -1,7 +1,7 @@
 # Echo 規格書
 
 最後更新：2026-10-09
-依據：實際檢查 ~/Desktop/echo 資料夾的程式碼（最新 commit 為 v1.1.2）
+依據：實際檢查 ~/Desktop/echo 資料夾的程式碼（最新版本為 v1.1.3）
 
 ---
 
@@ -42,7 +42,7 @@ Echo 是一個「通用刷題遊戲」。遊戲本身固定，題庫可以換。
 ├── README.md / LICENSE / CONTRIBUTING.md 開源門面
 ├── docs/                                 SRS、PRD、舊交接文件
 ├── public/banks/echo_sample.json         內建範例題庫（19 題，原創）
-├── 題庫/                                 ⚠️ 使用者私人題庫（IPAS），不可上傳 GitHub
+├── .gitignore                            不上傳清單（含 題庫/、*ipas*.json 備援）
 └── src/
     ├── App.tsx              總控：載入題庫、切換畫面
     ├── index.css            主題顏色 + 所有動畫
@@ -118,18 +118,17 @@ Echo 是一個「通用刷題遊戲」。遊戲本身固定，題庫可以換。
 
 **🔴 嚴重（要先處理）**
 
-1. **沒有 `.gitignore`，雜檔被傳上 GitHub 了**
-   `node_modules`（約 7000 個檔）、`dist`、`.DS_Store` 都在公開 repo 裡。
-2. **舊的 IPAS 考題還在公開 repo 裡**
-   - `dist/banks/ipas_bank.json` 目前還在 GitHub 上
-   - 早期 commit（v0.1 ~ v1.0）的歷史紀錄裡也有 `public/banks/ipas_bank.json`
-   - 這違背了 v1.0.1「移除版權疑慮」的目標
-3. **`題庫/` 資料夾有兩份 IPAS 題庫，還沒被追蹤**
-   下次如果直接 `git add .`，它們會被一起推到公開的 GitHub。
+1. ~~沒有 `.gitignore`~~ → **v1.1.3 已補上**，node_modules、dist、.DS_Store 已從 GitHub 移除
+2. **舊的 IPAS 考題還在 GitHub 歷史紀錄裡**
+   - 目前的版本已經沒有（v1.1.3 移除了 `dist/banks/ipas_bank.json`）
+   - 但早期 commit（v0.1 ~ v1.0）的歷史裡還有 `public/banks/ipas_bank.json`、`dist/banks/ipas_bank.json`（323 題初級考古題）
+   - repo 有 0 個 fork。處理方式待決定（見第七節）
+3. ~~`題庫/` 可能被誤推~~ → **已解決**：私人題庫已搬到 `~/Documents/echo題庫`（不在專案裡），`.gitignore` 也擋了 `題庫/` 和 `*ipas*.json` 當備援
+   - 注意：`題庫/` 裡的科目二出處像真實考古題，一樣不能上傳
 
 **🟡 一般**
 
-4. **v1.1.3 沒有進到專案**：之前做好的「AI 指令加引號規則」版本，目前資料夾裡沒有（最新 commit 是 v1.1.2）
+4. **AI 指令引號規則還沒做**：原本叫 v1.1.3 但沒進到專案，改名為 v1.1.4 重做（要改的兩行見 CHANGELOG）
 5. **AI 功能沒用真的 API Key 完整測過**
 6. **Gemini 模型名稱 `gemini-2.0-flash` 可能已過時**（未確認，需上 Google 官網查）
 7. **`package.json` 版本號一直是 0.1.0**，沒有跟著更新
@@ -143,9 +142,9 @@ Echo 是一個「通用刷題遊戲」。遊戲本身固定，題庫可以換。
 
 ## 六、下一步（依順序）
 
-1. **補 `.gitignore` 並把雜檔從 GitHub 移除**（排除 node_modules、dist、.DS_Store、題庫/）
+1. ~~補 `.gitignore` 並把雜檔從 GitHub 移除~~（v1.1.3 完成）
 2. **決定要不要清除 GitHub 歷史裡的 IPAS 題庫**（見第七節）
-3. **補上 v1.1.3**（AI 指令的引號規則）
+3. **v1.1.4：補上 AI 指令的引號規則**
 4. **用真的 API Key 測 AI 四大功能**，順便確認 Gemini 模型名稱
 5. 音效
 6. 進階模式也吃題數設定（或拿掉進階模式）
@@ -157,7 +156,7 @@ Echo 是一個「通用刷題遊戲」。遊戲本身固定，題庫可以換。
 
 1. **GitHub 歷史裡的 IPAS 題庫要不要徹底清掉？**
    清掉要改寫 git 歷史（比較麻煩、有風險）；不清的話，有心人翻舊版本還是看得到。
-2. `題庫/` 資料夾要留在專案裡（加進 .gitignore），還是搬到專案外面？
+2. ~~`題庫/` 要放哪~~ → 已決定：搬到 `~/Documents/echo題庫`
 3. 音效要用程式合成，還是找現成音檔？
 4. 進階模式要保留，還是併進「標準 + 自訂題數」？
 5. 要不要做電腦版寬螢幕排版？

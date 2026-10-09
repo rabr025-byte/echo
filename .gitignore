@@ -1,0 +1,20 @@
+# 套件（每個人自己 npm install 就會有，不用上傳）
+node_modules/
+
+# build 產出（Vercel 會自己 build，不用上傳）
+dist/
+*.tsbuildinfo
+
+# Mac 系統雜檔
+.DS_Store
+
+# 本機設定、密碼類（絕對不能上傳）
+*.local
+.env
+.env.*
+.vercel/
+
+# 私人題庫（IPAS 考題有版權，絕對不能上傳）
+# 題庫已搬到 ~/Documents/echo題庫，這行是備援
+題庫/
+*ipas*.json

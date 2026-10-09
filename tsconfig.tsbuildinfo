@@ -1,1 +1,0 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/components/bankpicker.tsx","./src/components/menu.tsx","./src/components/quiz.tsx","./src/components/result.tsx","./src/lib/storage.ts","./src/lib/usegame.ts","./src/lib/validatebank.ts","./src/types/bank.ts"],"version":"5.9.3"}

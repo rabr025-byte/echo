@@ -43,7 +43,7 @@
 
 **不是程式碼**
 - `public/banks/echo_sample.json` — 內建範例題庫（原創，公開）
-- `題庫/` — 使用者私人題庫（IPAS 考題，**絕對不能上傳**）
+- 私人題庫（IPAS 考題，**絕對不能上傳**）— v1.1.3 起已搬出專案，放在 `~/Documents/echo題庫`。`.gitignore` 仍擋 `題庫/` 和 `*ipas*.json` 當備援
 
 ---
 
@@ -81,7 +81,7 @@
    git push
    ```
    （`git status` 那行是讓他推之前看一眼，確認沒有 `題庫/`）
-   .gitignore 補好之後，可以恢復成：
+   .gitignore 已在 v1.1.3 補好，可以用（推之前仍建議看一眼 `git status`）：
    ```
    cd ~/Desktop/echo
    git add . && git commit -m "vX.Y.Z 這次改了什麼" && git push

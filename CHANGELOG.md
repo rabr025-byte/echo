@@ -2,15 +2,22 @@
 
 最新的在最上面。日期為大約時間。
 
+## v1.1.4（待做）
+- AI 指令加規則：文字裡的引號一律用單引號或「」，避免 JSON 壞掉
+- 這是原本叫 v1.1.3、做好但沒進到專案的那版，改名重做
+- 要改兩行：`src/components/BankGuide.tsx`（source 規則上面）、`src/lib/ai/prompts.ts`（source 規則下面）
+
+## v1.1.3 — 2026-10-09
+- 新增 `.gitignore`：擋掉 node_modules、dist、.DS_Store、.env、`題庫/`、任何 `*ipas*.json`
+- 把 node_modules、dist（含舊的 IPAS 題庫 `dist/banks/ipas_bank.json`）、.DS_Store 從 GitHub 移除（電腦裡的檔案保留）
+- 私人題庫從專案裡搬到 `~/Documents/echo題庫`
+- ⚠️ GitHub 舊歷史裡仍有 IPAS 初級考古題（323 題），處理方式待決定（見 spec.md 第七節）
+
 ## 交接文件 — 2026-10-09
 - 新增 spec.md、CHANGELOG.md、CLAUDE.md，準備交接到新視窗
 - 檢查時發現：沒有 .gitignore、GitHub 上還有舊 IPAS 題庫（見 spec.md 已知問題）
 
-## v1.1.3（已做好，但沒進到專案）
-- AI 指令加規則：文字裡的引號一律用單引號或「」，避免 JSON 壞掉
-- ⚠️ 目前資料夾裡沒有這版，需要重新補上
-
-## v1.1.2 — 2026-08 ← 目前專案實際版本
+## v1.1.2 — 2026-08
 - 讀 JSON 變寬容：自動清掉 # 註解、說明文字、```json 外框
 - 讀檔失敗會說「第幾行附近」出錯，並貼出那一行
 
