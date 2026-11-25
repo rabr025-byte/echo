@@ -96,7 +96,7 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
   };
 
   return (
-    <div className={`min-h-screen max-w-md mx-auto w-full px-5 pb-6 flex flex-col safe-top ${shake ? 'animate-[shake_0.4s]' : ''}`}>
+    <div className={`quiz-shell min-h-screen max-w-md mx-auto w-full px-4 pb-8 flex flex-col safe-top ${shake ? 'quiz-shake' : ''}`}>
       {/* 答對全畫面綠色脈衝 */}
       {hitPulse > 0 && (
         <div key={`pulse-${hitPulse}`} className="fixed inset-0 z-30 pointer-events-none animate-hit-pulse"
@@ -150,9 +150,13 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
         </div>
       )}
 
-      {/* 頂部:愛心血量 + 退出 */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-1.5">
+      {/* 頂部 HUD：進度、連擊、血量、分數與幽靈維持在一個安靜資訊列。 */}
+      <div className="quiz-hud mb-5" data-testid="quiz-hud">
+        <div className="quiz-hud-row">
+        <div className="quiz-progress-label"><span className="quiz-eyebrow">進度</span><strong>{currentIdx + 1}<span> / {questions.length}</span></strong></div>
+        <div className="quiz-hud-stat"><span className="quiz-eyebrow">連擊</span><strong style={{ color: combo > 0 ? 'var(--combo)' : 'var(--fg-dim)' }}>{combo}</strong></div>
+        <div className="quiz-hearts" aria-label={`剩餘 ${Math.ceil(hp / 20)} 顆心`}>
+          <div className="flex gap-1">
           {Array.from({ length: HP_MAX / 20 }).map((_, i) => {
             const heartsLeft = Math.ceil(hp / 20);
             const alive = i < heartsLeft;
@@ -165,12 +169,25 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
                   color: alive ? 'var(--bad)' : 'color-mix(in srgb, var(--fg-dim) 35%, transparent)',
                   filter: alive ? 'drop-shadow(0 0 4px color-mix(in srgb, var(--bad) 50%, transparent))' : 'none',
                 }}>
-                <Heart size={20} fill={alive ? 'currentColor' : 'none'} strokeWidth={alive ? 0 : 1.5} />
+                <Heart size={17} fill={alive ? 'currentColor' : 'none'} strokeWidth={alive ? 0 : 1.5} />
               </span>
             );
           })}
         </div>
-        <div className="flex items-center gap-3">
+        </div>
+        <div className="quiz-points"><span className="quiz-eyebrow">分數</span><strong>{points}</strong></div>
+        <button onClick={onQuit} className="quiz-exit" aria-label="結束本局">離開</button>
+        </div>
+        <div className="quiz-hud-subrow">
+          <div className="quiz-progress-track"><span style={{ width: `${((currentIdx + (answered ? 1 : 0)) / questions.length) * 100}%` }} /></div>
+          {ghost && (() => {
+            const ghostIdx = ghost.timestamps.filter(t => t <= timer).length;
+            const ahead = ghostIdx >= 0 && (currentIdx + (answered ? 1 : 0)) > ghostIdx;
+            return <span className="quiz-ghost" style={{ color: ahead ? 'var(--good)' : 'var(--fg-dim)' }}><Ghost size={12} /> {ahead ? '領先幽靈' : `幽靈 ${Math.min(ghostIdx + 1, ghost.total)}/${ghost.total}`}</span>;
+          })()}
+        </div>
+      </div>
+      <div className="quiz-dev-row">
           {devMode && !answered && (
             <button
               onClick={() => game.answer(current.answer, window.innerWidth / 2, window.innerHeight / 3)}
@@ -178,33 +195,12 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
               <span className="flex items-center gap-1"><Zap size={12} />自動答對</span>
             </button>
           )}
-          <button onClick={onQuit} className="text-fg-dim text-xs tracking-widest active:scale-95">結束</button>
-        </div>
       </div>
-
-      {/* 進度 + 幽靈對手 */}
-      {(() => {
-        // 幽靈:依目前經過秒數,推算上次的你答到第幾題
-        const ghostIdx = ghost ? ghost.timestamps.filter(t => t <= timer).length : -1;
-        const ahead = ghostIdx >= 0 && (currentIdx + (answered ? 1 : 0)) > ghostIdx;
-        return (
-          <div className="flex justify-between items-center text-xs text-fg-dim mb-4 tabular-nums">
-            <span>{currentIdx + 1} / {questions.length}</span>
-            {ghost && (
-              <span className="flex items-center gap-1 text-[10px] tracking-wider"
-                style={{ color: ahead ? 'var(--good)' : 'var(--fg-dim)' }}>
-                <Ghost size={12} /> {ahead ? '領先幽靈' : `幽靈在第 ${Math.min(ghostIdx + 1, ghost.total)} 題`}
-              </span>
-            )}
-            <span className="font-mono">{points} 分</span>
-          </div>
-        );
-      })()}
 
       {/* 賭注模式:答題前可押,分數×2 但答錯扣 2 顆心 */}
       {!answered && (
         <button onClick={() => game.setStake(!stake)}
-          className={`mb-4 self-start px-4 py-2 rounded-full border text-xs font-black tracking-widest transition-all active:scale-95 ${
+          className={`quiz-stake mb-5 self-start px-4 py-2 rounded-full border text-xs font-black tracking-widest transition-all active:scale-95 ${
             stake ? 'animate-heart-panic' : ''
           }`}
           style={stake ? {
@@ -219,9 +215,9 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
         </button>
       )}
 
-      <div className="mb-6">
-        {current.source && <div className="text-fg-dim text-[10px] mb-2 tracking-wider">{current.source}</div>}
-        <p className="text-lg leading-relaxed font-medium">{current.question}</p>
+      <div className="quiz-question-card mb-5" data-testid="question-card">
+        {current.source && <div className="quiz-source">{current.source}</div>}
+        <p className="quiz-question">{current.question}</p>
       </div>
 
       {/* 申論題:輸入作答 */}
@@ -257,21 +253,21 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
 
       {/* 選擇題:選項 */}
       {!isEssay && (
-      <div className="flex flex-col gap-3">
+      <div className="quiz-options flex flex-col gap-3" data-testid="quiz-options">
         {current.options.map((opt, i) => {
           const isCorrect = i === current.answer;
           const isPicked = i === selected;
-          let cls = 'border-theme-border bg-card';
+          let cls = 'quiz-option-default';
           if (answered) {
-            if (isCorrect) cls = 'border-good/60 bg-good/10 glow-accent';
-            else if (isPicked) cls = 'border-bad/60 bg-bad/10';
-            else cls = 'border-theme-border bg-transparent opacity-40';
+            if (isCorrect) cls = 'quiz-option-correct';
+            else if (isPicked) cls = 'quiz-option-wrong';
+            else cls = 'quiz-option-muted';
           }
           return (
-            <button key={i} disabled={answered}
+            <button key={i} data-testid={`quiz-option-${i}`} disabled={answered}
               onClick={e => game.answer(i, e.clientX, e.clientY)}
-              className={`w-full p-4 rounded-xl border text-left transition-all active:scale-[0.99] ${cls} ${answered && isCorrect ? 'animate-pop' : ''}`}>
-              <span className="text-sm leading-relaxed">{opt}</span>
+              className={`quiz-option w-full rounded-2xl border text-left transition-all active:scale-[0.99] ${cls} ${answered && isCorrect ? 'quiz-option-pop' : ''}`}>
+              <span className="quiz-option-index">{String.fromCharCode(65 + i)}</span><span className="text-sm leading-relaxed">{opt}</span>
             </button>
           );
         })}
@@ -306,8 +302,8 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
             </div>
           )}
 
-          <button onClick={game.next}
-            className="w-full py-4 rounded-xl bg-accent text-accent-fg font-bold tracking-widest active:scale-[0.98] transition-all">
+          <button onClick={game.next} data-testid="next-question"
+            className="quiz-primary-action w-full py-4 rounded-2xl bg-accent text-accent-fg font-bold tracking-widest active:scale-[0.98] transition-all">
             {currentIdx < questions.length - 1 ? '下一題' : '看結果'}
           </button>
         </div>

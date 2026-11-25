@@ -48,7 +48,7 @@ export const Result = ({ game, onReplay, onMenu }: Props) => {
   }, [g.celebrate]);
 
   return (
-    <div className="min-h-screen max-w-md mx-auto w-full px-6 pb-12 flex flex-col items-center justify-center gap-8 relative overflow-hidden safe-top">
+    <div className="result-shell min-h-screen max-w-md mx-auto w-full px-5 pb-10 flex flex-col items-center justify-center gap-7 relative overflow-hidden safe-top">
       {/* 慶祝粒子(從底部往上噴) */}
       <div className="fixed inset-0 pointer-events-none flex items-end justify-center pb-20">
         {particles.map(p => (
@@ -58,14 +58,14 @@ export const Result = ({ game, onReplay, onMenu }: Props) => {
         ))}
       </div>
 
-      <div className={`text-center transition-all duration-500 ${show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-        <div className="text-fg-dim text-xs tracking-[0.3em] uppercase mb-3">{g.label}</div>
-        <div className={`text-7xl font-black tabular-nums ${g.celebrate >= 2 ? 'animate-pop' : ''}`}
+      <div className={`result-hero text-center transition-all duration-500 ${show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <div className="result-kicker">本局結算 · {g.label}</div>
+        <div className={`result-score ${g.celebrate >= 2 ? 'animate-pop' : ''}`}
           style={{ color: g.celebrate > 0 ? 'var(--accent)' : 'var(--fg)',
             textShadow: g.celebrate >= 2 ? '0 0 30px color-mix(in srgb, var(--accent) 60%, transparent)' : 'none' }}>
           {pct}<span className="text-3xl">%</span>
         </div>
-        <div className="text-fg-dim text-sm mt-2">答對 {score} / {total} 題</div>
+        <div className="result-caption">答對 {score} / {total} 題</div>
         {newRecord && (
           <div className="mt-3 inline-block px-4 py-1.5 rounded-full text-xs font-black tracking-widest animate-pop"
             style={{ background: 'color-mix(in srgb, var(--combo) 15%, transparent)', color: 'var(--combo)',
@@ -82,24 +82,24 @@ export const Result = ({ game, onReplay, onMenu }: Props) => {
         )}
       </div>
 
-      <div className="w-full grid grid-cols-2 gap-3">
-        <div className="p-4 rounded-xl bg-card border border-theme-border text-center">
-          <div className="text-fg-dim text-[10px] tracking-widest mb-1">得分</div>
-          <div className="text-xl font-mono font-bold">{points}</div>
+      <div className="result-stats w-full" data-testid="result-stats">
+        <div className="result-stat-row">
+          <div><div className="result-stat-label">得分</div><div className="result-stat-value">{points}</div></div>
+          <span className="result-stat-mark">POINTS</span>
         </div>
-        <div className="p-4 rounded-xl bg-card border border-theme-border text-center">
-          <div className="text-fg-dim text-[10px] tracking-widest mb-1">用時</div>
-          <div className="text-xl font-mono font-bold">{fmtTime(timer)}</div>
+        <div className="result-stat-row">
+          <div><div className="result-stat-label">用時</div><div className="result-stat-value">{fmtTime(timer)}</div></div>
+          <span className="result-stat-mark">TIME</span>
         </div>
       </div>
 
       <div className="w-full flex flex-col gap-3">
-        <button onClick={onReplay}
-          className="w-full py-4 rounded-xl bg-accent text-accent-fg font-bold tracking-widest active:scale-[0.98] transition-all">
+        <button onClick={onReplay} data-testid="result-replay"
+          className="result-primary w-full py-4 rounded-2xl bg-accent text-accent-fg font-bold tracking-widest active:scale-[0.98] transition-all">
           再來一次
         </button>
-        <button onClick={onMenu}
-          className="w-full py-4 rounded-xl border border-theme-border text-fg/70 font-bold tracking-widest active:scale-[0.98] transition-all">
+        <button onClick={onMenu} data-testid="result-menu"
+          className="result-secondary w-full py-3 rounded-2xl border border-theme-border text-fg/70 font-bold tracking-widest active:scale-[0.98] transition-all">
           回選單
         </button>
       </div>
