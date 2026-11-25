@@ -2,6 +2,7 @@
 // [Echo] 題庫製作指南 — 提供可複製的 AI prompt,教使用者用 ChatGPT/NotebookLM 生題庫
 import { useState } from 'react';
 import { Copy, Check, X } from 'lucide-react';
+import '../styles/visual-bank.css';
 
 interface Props { onClose: () => void; }
 
@@ -82,67 +83,72 @@ export const BankGuide = ({ onClose }: Props) => {
   };
 
   const CopyBtn = ({ text, tag, label }: { text: string; tag: string; label: string }) => (
-    <button onClick={() => copy(text, tag)}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent text-accent-fg text-xs font-bold tracking-widest active:scale-95 transition-transform">
+    <button onClick={() => copy(text, tag)} className={`guide-copy active:scale-95 transition-transform ${copied === tag ? 'is-copied' : ''}`}>
       {copied === tag ? <Check size={13} /> : <Copy size={13} />}
       {copied === tag ? '已複製' : label}
     </button>
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-sm flex flex-col justify-end">
-      <div className="max-w-md mx-auto w-full bg-bg border-t border-theme-border rounded-t-3xl p-6 pb-12 max-h-[88vh] overflow-y-auto safe-bottom">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-lg font-bold tracking-widest">自己做題庫</h2>
-          <button onClick={onClose} className="text-fg-dim"><X size={20} /></button>
+    <div className="guide-overlay fixed inset-0 z-50 flex flex-col justify-end">
+      <div className="guide-sheet max-w-md mx-auto w-full p-5 pb-10 max-h-[90vh] overflow-y-auto safe-bottom">
+        <div className="bank-grabber" aria-hidden="true" />
+        <div className="guide-header flex justify-between items-start">
+          <div>
+            <p className="bank-kicker">ECHO / MAKER'S NOTE</p>
+            <h2 className="guide-heading">題庫指南</h2>
+          </div>
+          <button onClick={onClose} className="bank-close" aria-label="關閉題庫指南"><X size={20} /></button>
         </div>
-        <p className="text-fg-dim text-xs leading-relaxed mb-5">
+        <p className="guide-intro">
           複製下面的指令,連同你的教材(PDF、筆記、講義都可以)一起丟給 ChatGPT、Claude、Gemini 等任何 AI。
           它會生成題庫 JSON,你把內容存成 .json 檔,再從題庫選單上傳即可。指令已內建分批機制,可產出 50 題以上。
         </p>
 
         {/* 考試導向 */}
-        <div className="mb-5 p-4 rounded-2xl border border-theme-border bg-card">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-bold tracking-widest">📘 考試 / 學科</span>
+        <div className="guide-card">
+          <div className="guide-card-head">
+            <span className="guide-card-title"><span className="guide-index">01</span>📘 考試 / 學科</span>
             <CopyBtn text={EXAM_PROMPT} tag="exam" label="複製指令" />
           </div>
-          <p className="text-fg-dim text-[11px] leading-relaxed">適合證照、考試、專業知識。出題嚴謹、貼近考點。</p>
+          <p className="guide-card-copy">適合證照、考試、專業知識。出題嚴謹、貼近考點。</p>
+          <pre className="guide-code-preview">{EXAM_PROMPT.slice(0, 145)}…</pre>
         </div>
 
         {/* 生活知識導向 */}
-        <div className="mb-5 p-4 rounded-2xl border border-theme-border bg-card">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-bold tracking-widest">🍳 生活 / 興趣</span>
+        <div className="guide-card">
+          <div className="guide-card-head">
+            <span className="guide-card-title"><span className="guide-index">02</span>🍳 生活 / 興趣</span>
             <CopyBtn text={LIFE_PROMPT} tag="life" label="複製指令" />
           </div>
-          <p className="text-fg-dim text-[11px] leading-relaxed">適合食譜、書摘、興趣知識。出題活潑、角度多元。</p>
+          <p className="guide-card-copy">適合食譜、書摘、興趣知識。出題活潑、角度多元。</p>
+          <pre className="guide-code-preview">{LIFE_PROMPT.slice(0, 145)}…</pre>
         </div>
 
         {/* 分批提示 */}
-        <div className="mb-5 p-4 rounded-2xl border border-accent/30 bg-accent/5">
-          <div className="text-sm font-bold tracking-widest mb-2">💡 想要 100 題以上?</div>
-          <p className="text-fg-dim text-[11px] leading-relaxed">
+        <div className="guide-callout">
+          <div className="guide-card-title">💡 想要 100 題以上?</div>
+          <p className="guide-card-copy">
             所有 AI 單次輸出都有長度上限,約 25-50 題。指令已內建分批機制:AI 輸出第一批後會標示「尚有後續」,你回覆「繼續」即可拿到下一批。
             每批各自存檔上傳,或把多批合併成一個中括號 [ ] 的陣列一次上傳都可以。
           </p>
         </div>
 
         {/* 多題庫說明 */}
-        <div className="mb-5 p-4 rounded-2xl border border-theme-border bg-card">
-          <div className="text-sm font-bold tracking-widest mb-2">一個檔案有多份題庫?</div>
-          <p className="text-fg-dim text-[11px] leading-relaxed">
+        <div className="guide-note">
+          <div className="guide-card-title">一個檔案有多份題庫?</div>
+          <p className="guide-card-copy">
             AI 有時會一次生出好幾份題庫,包在一個中括號 [ ] 的陣列裡。這種檔案可以直接上傳,Echo 會自動全部匯入成獨立題庫,不用手動拆開。
           </p>
         </div>
 
         {/* 格式參考 */}
-        <div className="p-4 rounded-2xl border border-theme-border bg-card">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-bold tracking-widest">格式參考</span>
+        <div className="guide-card guide-format-card">
+          <div className="guide-card-head">
+            <span className="guide-card-title"><span className="guide-index">03</span>格式參考</span>
             <CopyBtn text={FORMAT_BLOCK} tag="format" label="複製格式" />
           </div>
-          <pre className="text-[9px] text-fg-dim leading-relaxed overflow-x-auto whitespace-pre">{FORMAT_BLOCK}</pre>
+          <pre className="guide-format-code">{FORMAT_BLOCK}</pre>
         </div>
       </div>
     </div>

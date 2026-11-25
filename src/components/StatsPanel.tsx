@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import type { QuestionBank } from '../types/bank';
 import { loadStats, loadRecords } from '../lib/storage';
 import { X } from 'lucide-react';
+import '../styles/visual-stats.css';
 
 interface Props {
   bank: QuestionBank;
@@ -28,7 +29,6 @@ export const StatsPanel = ({ bank, onClose }: Props) => {
     const s = stats[q.id];
     return s && s.correct > 0 && s.wrong === 0;   // 答過且從沒錯 = 已掌握
   }).length;
-  const coverage = total > 0 ? Math.round((seen / total) * 100) : 0;
 
   // 排行:依得分排序前 10
   const ranked = useMemo(
@@ -37,20 +37,22 @@ export const StatsPanel = ({ bank, onClose }: Props) => {
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-bg/95 backdrop-blur-sm flex flex-col justify-end">
-      <div className="max-w-md mx-auto w-full bg-bg border-t border-theme-border rounded-t-3xl p-6 pb-12 max-h-[88vh] overflow-y-auto safe-bottom">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold tracking-widest">戰績</h2>
-          <button onClick={onClose} className="text-fg-dim"><X size={20} /></button>
+    <div className="stats-panel-visual fixed inset-0 z-50 bg-bg/95 backdrop-blur-sm flex flex-col justify-end">
+      <div className="stats-sheet max-w-md mx-auto w-full bg-bg p-6 pb-12 max-h-[88vh] overflow-y-auto safe-bottom">
+        <div className="stats-heading flex justify-between items-start mb-5">
+          <div>
+            <div className="stats-kicker">圖鑑紀錄</div>
+            <h2 className="text-2xl font-black tracking-widest">戰績</h2>
+          </div>
+          <button onClick={onClose} className="stats-close text-fg-dim" aria-label="關閉戰績"><X size={20} /></button>
         </div>
 
         {/* 分頁切換 */}
-        <div className="flex gap-2 mb-5">
+        <div className="stats-tabs flex gap-5 mb-6" role="tablist" aria-label="戰績分類">
           {([['matrix', '圖鑑'], ['records', '紀錄']] as const).map(([id, label]) => (
             <button key={id} onClick={() => setTab(id)}
-              className={`flex-1 py-2.5 rounded-xl border text-xs font-bold tracking-widest transition-all ${
-                tab === id ? 'border-accent/50 bg-accent/10' : 'border-theme-border text-fg-dim'
-              }`}>
+              role="tab" aria-selected={tab === id}
+              className={`stats-tab text-xs font-bold tracking-widest transition-all ${tab === id ? 'is-active' : ''}`}>
               {label}
             </button>
           ))}
@@ -59,49 +61,39 @@ export const StatsPanel = ({ bank, onClose }: Props) => {
         {tab === 'matrix' && (
           <>
             {/* 概況 */}
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              {[
-                ['題庫題數', total],
-                ['已作答', `${coverage}%`],
-                ['已掌握', mastered],
-              ].map(([label, val]) => (
-                <div key={label as string} className="p-3 rounded-xl bg-card border border-theme-border text-center">
-                  <div className="text-fg-dim text-[9px] tracking-widest mb-1">{label}</div>
-                  <div className="text-lg font-black tabular-nums">{val}</div>
-                </div>
-              ))}
+            <div className="stats-hero mb-6">
+              <div className="stats-kicker">已掌握題目</div>
+              <div className="stats-hero-line">
+                <div className="stats-hero-value">{mastered}<span> / {total}</span></div>
+                <div className="stats-hero-percent">{total > 0 ? Math.round((mastered / total) * 100) : 0}%</div>
+              </div>
+              <div className="stats-progress" aria-label={`已掌握 ${mastered} 題，共 ${total} 題`}><span style={{ width: `${total > 0 ? (mastered / total) * 100 : 0}%` }} /></div>
+              <div className="stats-hero-note">已作答 {seen} 題 · 還有 {Math.max(0, total - seen)} 題等你解鎖</div>
             </div>
 
-            {/* 圖鑑矩陣 */}
-            <div className="grid grid-cols-8 gap-1.5">
+            {/* 以短條呈現題目狀態，保留每題 title 供查看詳情。 */}
+            <div className="stats-question-strip" aria-label="題目掌握分布">
               {bank.questions.map((q, i) => {
                 const s = stats[q.id];
-                let bg = 'transparent', border = 'var(--border)', color = 'var(--fg-dim)';
-                if (s) {
-                  if (s.wrong === 0) { bg = 'var(--good)'; border = 'var(--good)'; color = 'var(--bg)'; }
-                  else if (s.correct > s.wrong) { bg = 'color-mix(in srgb, var(--combo) 35%, transparent)'; border = 'var(--combo)'; color = 'var(--fg)'; }
-                  else { bg = 'color-mix(in srgb, var(--bad) 25%, transparent)'; border = 'var(--bad)'; color = 'var(--fg)'; }
-                }
+                const status = !s ? 'unseen' : s.wrong === 0 ? 'mastered' : s.correct > s.wrong ? 'familiar' : 'review';
                 return (
-                  <div key={q.id}
-                    className="aspect-square rounded-md flex items-center justify-center text-[8px] font-mono border"
-                    style={{ background: bg, borderColor: border, color }}
+                  <div key={q.id} className={`stats-question-mark ${status}`}
                     title={`${q.question.slice(0, 20)}… ${s ? `對${s.correct}/錯${s.wrong}` : '未作答'}`}>
-                    {i + 1}
+                    <span className="sr-only">第 {i + 1} 題</span>
                   </div>
                 );
               })}
             </div>
 
-            <div className="flex flex-wrap gap-3 mt-4 text-[9px] text-fg-dim">
+            <div className="stats-legend flex flex-wrap gap-3 mt-4 text-[9px] text-fg-dim">
               {[
-                ['全對', 'var(--good)'],
-                ['對多於錯', 'var(--combo)'],
-                ['常錯', 'var(--bad)'],
-                ['未作答', 'var(--border)'],
+                ['已掌握', 'mastered'],
+                ['熟悉中', 'familiar'],
+                ['需複習', 'review'],
+                ['未作答', 'unseen'],
               ].map(([label, c]) => (
                 <span key={label} className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-sm border" style={{ background: c, borderColor: c }} />
+                  <span className={`stats-legend-dot ${c}`} />
                   {label}
                 </span>
               ))}
@@ -110,20 +102,20 @@ export const StatsPanel = ({ bank, onClose }: Props) => {
         )}
 
         {tab === 'records' && (
-          <div className="flex flex-col gap-2">
+          <div className="stats-records flex flex-col">
             {ranked.length === 0 && (
               <p className="text-fg-dim text-sm text-center py-8">還沒有紀錄,先玩一局吧</p>
             )}
             {ranked.map((r, i) => (
-              <div key={i} className="p-3 rounded-xl bg-card border border-theme-border flex items-center gap-3">
-                <span className="w-7 text-center font-black tabular-nums text-sm"
+              <div key={i} className="stats-record stats-row flex items-center gap-3">
+                <span className="stats-rank w-7 text-center font-black tabular-nums text-sm"
                   style={{ color: i < 3 ? 'var(--accent)' : 'var(--fg-dim)' }}>
                   {i + 1}
                 </span>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold tabular-nums">{r.points} 分</span>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded border border-theme-border text-fg-dim">
+                    <span className="stats-mode text-[9px] text-fg-dim">
                       {MODE_LABEL[r.mode] ?? r.mode}
                     </span>
                   </div>

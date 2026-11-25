@@ -3,6 +3,7 @@
 // 原理:用 data-tour 屬性標記目標,遮罩挖洞高亮,點「下一步」推進
 
 import { useState, useEffect, useCallback } from 'react';
+import '../styles/visual-stats.css';
 
 interface Step {
   target: string;      // data-tour 的值;空字串 = 置中卡片(無高亮)
@@ -57,18 +58,16 @@ export const Tutorial = ({ onDone }: Props) => {
   const cardBelow = !rect || rect.top < window.innerHeight / 2;
 
   return (
-    <div className="fixed inset-0 z-[100]">
+    <div className="tutorial-visual fixed inset-0 z-[100]">
       {/* 遮罩:有目標時挖洞(用超大 box-shadow 技巧) */}
       {rect ? (
-        <div className="absolute rounded-2xl transition-all duration-300 pointer-events-none"
+        <div className="tutorial-spotlight absolute rounded-2xl transition-all duration-300 pointer-events-none"
           style={{
             left: rect.left - pad, top: rect.top - pad,
             width: rect.width + pad * 2, height: rect.height + pad * 2,
-            boxShadow: '0 0 0 9999px rgba(0,0,0,0.78)',
-            border: '2px solid var(--accent)',
           }} />
       ) : (
-        <div className="absolute inset-0 bg-black/78" />
+        <div className="tutorial-dim absolute inset-0" />
       )}
 
       {/* 提示卡 */}
@@ -76,14 +75,19 @@ export const Tutorial = ({ onDone }: Props) => {
         style={rect
           ? (cardBelow ? { top: rect.bottom + pad + 16 } : { bottom: window.innerHeight - rect.top + pad + 16 })
           : { top: '50%', transform: 'translate(-50%, -50%)' }}>
-        <div className="bg-bg border border-theme-border rounded-2xl p-5 shadow-2xl">
-          <div className="text-[10px] text-fg-dim tracking-widest mb-1">{idx + 1} / {STEPS.length}</div>
+        <div className="tutorial-card bg-bg border border-theme-border rounded-2xl p-5">
+          <div className="tutorial-progress flex items-center justify-between mb-3">
+            <div className="text-[10px] text-fg-dim tracking-widest">步驟 {String(idx + 1).padStart(2, '0')} / {String(STEPS.length).padStart(2, '0')}</div>
+            <div className="tutorial-progress-dots" aria-hidden="true">
+              {STEPS.map((_, stepIndex) => <span key={stepIndex} className={stepIndex <= idx ? 'is-filled' : ''} />)}
+            </div>
+          </div>
           <div className="text-lg font-black tracking-widest mb-1" style={{ color: 'var(--accent)' }}>{step.title}</div>
           <p className="text-sm text-fg/80 leading-relaxed mb-4">{step.text}</p>
           <div className="flex justify-between items-center">
-            <button onClick={skip} className="text-fg-dim text-xs tracking-widest">跳過</button>
+            <button onClick={skip} className="tutorial-skip text-fg-dim text-xs tracking-widest">跳過</button>
             <button onClick={next}
-              className="px-6 py-2.5 rounded-xl bg-accent text-accent-fg text-sm font-bold tracking-widest active:scale-95 transition-transform">
+              className="tutorial-next px-6 py-2.5 rounded-xl bg-accent text-accent-fg text-sm font-bold tracking-widest active:scale-95 transition-transform">
               {idx < STEPS.length - 1 ? '下一步' : '開始!'}
             </button>
           </div>
