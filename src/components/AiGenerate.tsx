@@ -1,7 +1,7 @@
 // src/components/AiGenerate.tsx
 // [Echo] AI 生題庫 — 三步驟流程:貼筆記、調整選項、預覽並儲存
 import { useState } from 'react';
-import { ArrowLeft, Check, ChevronRight, FileText, Save, Settings, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, ChevronRight, FileText, Save, Sparkles } from 'lucide-react';
 import type { QuestionBank } from '../types/bank';
 import type { AISettings } from '../lib/ai/types';
 import { getProvider } from '../lib/ai';
@@ -63,6 +63,8 @@ export const AiGenerate = ({ settings, onGenerated, onClose }: Props) => {
         setStage('input');
         return;
       }
+      // 題庫在生成成功時就交給 App，預覽只是視覺呈現，不能成為儲存的門檻。
+      onGenerated(result.bank!);
       setGeneratedBank(result.bank!);
       setStage('preview');
     } catch (e) {
@@ -71,10 +73,6 @@ export const AiGenerate = ({ settings, onGenerated, onClose }: Props) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSave = () => {
-    if (generatedBank) onGenerated(generatedBank);
   };
 
   return (
@@ -123,7 +121,7 @@ export const AiGenerate = ({ settings, onGenerated, onClose }: Props) => {
                 </article>
               ))}
             </div>
-            <button onClick={handleSave} className="visual-ai-hero-button w-full" data-testid="ai-save"><Save size={18} /> 儲存題庫並開始</button>
+            <button onClick={onClose} className="visual-ai-hero-button w-full" data-testid="ai-save"><Save size={18} /> 已儲存，開始練習</button>
           </div>
         ) : stage !== 'generating' && (
           <div className="visual-ai-form">
@@ -137,8 +135,8 @@ export const AiGenerate = ({ settings, onGenerated, onClose }: Props) => {
               <div className="visual-ai-chips"><span>{settings.genCount} 題</span><span>難度 · {difficulty}</span><span>{settings.provider.toUpperCase()}</span></div>
             </div>
 
-            {error && <div className="visual-ai-error" role="alert"><p>{error}</p>{!settings.apiKey && <a href="#settings" onClick={onClose}><Settings size={13} /> 前往設定</a>}</div>}
-            {!settings.apiKey && !error && <p className="visual-ai-key-hint"><Settings size={13} /> 還沒有 API Key？先到 <a href="#settings" onClick={onClose}>設定</a> 填寫。</p>}
+            {error && <div className="visual-ai-error" role="alert"><p>{error}</p>{!settings.apiKey && <p>到右上角「設定」填入 API Key。</p>}</div>}
+            {!settings.apiKey && !error && <p className="visual-ai-key-hint">還沒有 API Key？到右上角「設定」填入 API Key。</p>}
 
             <button onClick={handleGenerate} disabled={loading} className="visual-ai-hero-button w-full" data-testid="ai-generate"><Sparkles size={18} /> {loading ? '準備中…' : '生成題庫'} <ChevronRight size={17} /></button>
             <p className="visual-ai-footnote">內容只會從你的瀏覽器送往已選的 AI 供應商。</p>

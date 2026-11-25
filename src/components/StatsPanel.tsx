@@ -25,6 +25,7 @@ export const StatsPanel = ({ bank, onClose }: Props) => {
 
   const total = bank.questions.length;
   const seen = bank.questions.filter(q => stats[q.id]).length;
+  const coverage = total > 0 ? Math.round((seen / total) * 100) : 0;
   const mastered = bank.questions.filter(q => {
     const s = stats[q.id];
     return s && s.correct > 0 && s.wrong === 0;   // 答過且從沒錯 = 已掌握
@@ -68,7 +69,7 @@ export const StatsPanel = ({ bank, onClose }: Props) => {
                 <div className="stats-hero-percent">{total > 0 ? Math.round((mastered / total) * 100) : 0}%</div>
               </div>
               <div className="stats-progress" aria-label={`已掌握 ${mastered} 題，共 ${total} 題`}><span style={{ width: `${total > 0 ? (mastered / total) * 100 : 0}%` }} /></div>
-              <div className="stats-hero-note">已作答 {seen} 題 · 還有 {Math.max(0, total - seen)} 題等你解鎖</div>
+              <div className="stats-hero-note">已作答 {coverage}%（{seen} 題）· 還有 {Math.max(0, total - seen)} 題等你解鎖</div>
             </div>
 
             {/* 以短條呈現題目狀態，保留每題 title 供查看詳情。 */}
