@@ -120,6 +120,139 @@ body {
 .animate-title-glow { animation: titleGlow 3s ease-in-out infinite; }
 .card-rise { animation: cardRise 0.4s ease-out backwards; }
 
+/* ── Menu: arcade cabinet × editorial calm ── */
+.menu-shell {
+  background:
+    radial-gradient(circle at 86% 3%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 28%),
+    var(--bg);
+}
+
+.menu-topbar button,
+.menu-bank-notice,
+.menu-count-option,
+.menu-mode-tile,
+.menu-secondary-row,
+.menu-ai-row,
+.menu-hero-cta {
+  touch-action: manipulation;
+}
+
+.menu-wordmark {
+  letter-spacing: 0.18em;
+  line-height: 0.9;
+  color: var(--fg);
+  text-shadow: none;
+}
+
+.menu-ripple {
+  width: 94px;
+  height: 18px;
+  margin: 12px 0 0 2px;
+  color: var(--accent);
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+  opacity: 0.75;
+}
+
+.menu-question-count {
+  padding-bottom: 1px;
+}
+
+.menu-bank-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 28px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.menu-hero-cta {
+  min-height: 116px;
+  border: 1px solid color-mix(in srgb, var(--accent-fg) 20%, transparent);
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 72%, var(--bg)));
+  box-shadow: 0 14px 30px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.menu-hero-orbit {
+  border: 1px solid color-mix(in srgb, var(--accent-fg) 22%, transparent);
+  background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--accent-fg) 18%, transparent), transparent 62%);
+  opacity: 0.75;
+}
+
+.menu-count-picker {
+  scrollbar-width: none;
+}
+
+.menu-count-picker::-webkit-scrollbar {
+  display: none;
+}
+
+.menu-count-option {
+  border-color: var(--border);
+  color: var(--fg-dim);
+}
+
+.menu-count-option:focus-visible,
+.menu-mode-tile:focus-visible,
+.menu-secondary-row:focus-visible,
+.menu-ai-row:focus-visible,
+.menu-bank-notice:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.menu-mode-tile {
+  min-height: 104px;
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--card) 78%, transparent);
+}
+
+.menu-mode-tile:hover,
+.menu-secondary-row:hover,
+.menu-ai-row:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.menu-secondary-row {
+  min-height: 56px;
+  border-color: var(--border);
+  background: transparent;
+}
+
+.menu-daily {
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--card) 68%, transparent);
+}
+
+.menu-progress-track {
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--fg) 10%, transparent);
+}
+
+.menu-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.35s ease;
+}
+
+.menu-ai-row {
+  min-height: 59px;
+  border-color: var(--border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-rise,
+  .animate-title-glow,
+  .menu-progress-fill {
+    animation: none;
+    transition: none;
+  }
+}
+
 /* 愛心碎裂 */
 @keyframes heartBreak {
   0% { transform: scale(1); opacity: 1; }
