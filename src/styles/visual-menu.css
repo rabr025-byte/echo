@@ -1,0 +1,55 @@
+/* Echo 視覺收斂層：只使用主題變數，讓三個主題共享同一套比例。 */
+:root {
+  --echo-radius-sm: 10px;
+  --echo-radius-card: 14px;
+  --echo-gutter: 20px;
+}
+
+.menu-topbar { margin-bottom: 36px; }
+.menu-topbar button { font-size: 14px; }
+.menu-wordmark { font-size: 30px; }
+.menu-question-count span:first-child { font-size: 10px; }
+.menu-question-count span:last-child { font-size: 14px; }
+.menu-ripple { width: 72px; height: 16px; margin-top: 10px; }
+.menu-bank-notice { font-size: 12px; }
+.menu-hero { margin-bottom: 28px; }
+.menu-hero-cta { min-height: 108px; padding: 20px; border-radius: var(--echo-radius-card); }
+.menu-cta-title { font-size: 18px; }
+.menu-cta-detail { font-size: 14px; color: color-mix(in srgb, var(--accent-fg) 70%, transparent); }
+.menu-hero-orbit { width: 104px; height: 104px; right: -16px; bottom: -30px; }
+.menu-count-picker { min-height: 38px; margin-bottom: 24px; }
+.menu-micro-label { font-size: 10px; }
+.menu-count-option { min-height: 32px; padding: 6px 12px; border-radius: 999px; font-size: 12px; }
+.menu-mode-grid { gap: 8px; margin-bottom: 12px; }
+.menu-mode-tile { min-height: 104px; padding: 12px 10px; border-radius: var(--echo-radius-card); }
+.menu-mode-title { font-size: 14px; }
+.menu-secondary-row { min-height: 56px; padding: 14px 16px; border-radius: var(--echo-radius-card); }
+.menu-row-title { font-size: 14px; }
+.menu-supporting { font-size: 12px; }
+.menu-daily { padding: 16px; border-radius: var(--echo-radius-card); }
+.menu-quest { font-size: 14px; }
+.menu-progress-track { height: 4px; margin-top: 8px; }
+.menu-ai { padding-top: 20px; }
+.menu-ai-row { min-height: 59px; padding: 12px 0; }
+
+/* 結算頁共用同一套收斂後的比例。 */
+.result-shell { gap: 0; }
+.result-hero { padding: 24px 20px; border-radius: var(--echo-radius-card); }
+.result-kicker { margin-bottom: 12px; font-size: 10px; }
+.result-score { font-size: clamp(68px, 22vw, 84px); }
+.result-percent { font-size: 30px; letter-spacing: -.02em; }
+.result-caption { margin-top: 12px; font-size: 14px; }
+.result-badge { padding: 6px 12px; font-size: 12px; }
+.result-stats { margin-top: 20px; }
+.result-stat-row { min-height: 56px; }
+.result-stat-label { font-size: 10px; }
+.result-stat-value { font-size: 18px; }
+.result-stat-mark { font-size: 10px; }
+.result-actions { margin-top: 20px; }
+.result-primary { min-height: 54px; padding: 0 16px; border-radius: var(--echo-radius-card); font-size: 14px; }
+.result-secondary { min-height: 46px; padding: 0 16px; border-radius: var(--echo-radius-card); font-size: 14px; }
+.result-particle { width: 10px; height: 10px; }
+
+@media (max-width: 390px) {
+  .menu-shell, .result-shell { padding-left: var(--echo-gutter); padding-right: var(--echo-gutter); }
+}

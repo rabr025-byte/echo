@@ -338,13 +338,15 @@ body {
   text-transform: uppercase; line-height: 1.2;
 }
 .quiz-progress-label strong, .quiz-hud-stat strong, .quiz-points strong {
-  display: block; margin-top: 3px; font-size: 13px; line-height: 1; font-variant-numeric: tabular-nums;
+  display: block; margin-top: 4px; font-size: 14px; line-height: 1; font-variant-numeric: tabular-nums;
 }
 .quiz-progress-label strong span { color: var(--fg-dim); font-weight: 500; }
 .quiz-progress-label { min-width: 57px; }
 .quiz-hud-stat { min-width: 32px; }
 .quiz-hearts { margin-left: auto; }
 .quiz-hearts span { line-height: 0; }
+.quiz-hearts { transform: translateY(1px); }
+.quiz-hearts svg { width: 16px; height: 16px; }
 .quiz-points { min-width: 45px; text-align: right; }
 .quiz-exit {
   padding-left: 10px; border-left: 1px solid var(--border); color: var(--fg-dim);
@@ -357,13 +359,14 @@ body {
 .quiz-progress-track span { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .35s ease; }
 .quiz-ghost { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; font-size: 10px; letter-spacing: .03em; }
 .quiz-dev-row { min-height: 0; }
-.quiz-stake { min-height: 38px; background: color-mix(in srgb, var(--card) 75%, transparent); }
+.quiz-stake { min-height: 36px; background: color-mix(in srgb, var(--card) 82%, transparent); }
+.quiz-stake-idle { border-color: color-mix(in srgb, var(--fg-dim) 70%, var(--border)); color: var(--fg-dim); }
 .quiz-question-card {
-  padding: 21px 19px 23px; border: 1px solid var(--border); border-radius: 22px;
+  padding: 20px 19px 22px; border: 1px solid var(--border); border-radius: 22px;
   background: var(--card); box-shadow: 0 12px 30px color-mix(in srgb, var(--bg) 40%, transparent);
 }
 .quiz-source { margin-bottom: 13px; color: var(--fg-dim); font-size: 10px; letter-spacing: .1em; }
-.quiz-question { margin: 0; color: var(--fg); font-size: 20px; font-weight: 650; line-height: 1.7; letter-spacing: .01em; }
+.quiz-question { margin: 0; color: var(--fg); font-size: 20px; font-weight: 650; line-height: 1.55; letter-spacing: .01em; }
 .quiz-option {
   min-height: 68px; display: flex; align-items: center; gap: 13px; padding: 14px 15px;
   border-color: var(--border); background: color-mix(in srgb, var(--card) 88%, transparent); color: var(--fg);
@@ -373,16 +376,20 @@ body {
 .quiz-option:active { transform: translateY(1px) scale(.99); }
 .quiz-option-index {
   display: grid; width: 27px; height: 27px; flex: 0 0 27px; place-items: center; border: 1px solid var(--border);
-  border-radius: 50%; color: var(--fg-dim); font-size: 11px; font-weight: 700;
+  border-radius: 50%; color: color-mix(in srgb, var(--fg-dim) 86%, var(--fg)); font-size: 11px; font-weight: 750;
 }
 .quiz-option-correct { border-color: color-mix(in srgb, var(--good) 65%, var(--border)); background: color-mix(in srgb, var(--good) 13%, var(--card)); }
 .quiz-option-correct .quiz-option-index { border-color: var(--good); background: var(--good); color: var(--bg); }
 .quiz-option-wrong { border-color: color-mix(in srgb, var(--bad) 65%, var(--border)); background: color-mix(in srgb, var(--bad) 12%, var(--card)); }
-.quiz-option-wrong .quiz-option-index { border-color: var(--bad); color: var(--bad); }
-.quiz-option-muted { opacity: .4; }
+.quiz-option-wrong .quiz-option-index { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 16%, transparent); color: var(--bad); }
+.quiz-option-muted { opacity: .55; }
 .quiz-option-pop { animation: quizCorrect .4s cubic-bezier(.2, 1.2, .4, 1) forwards; }
 .quiz-primary-action, .result-primary { min-height: 54px; box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 18%, transparent); }
 .quiz-primary-action { margin-top: 3px; }
+.quiz-explanation {
+  border-top-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--card) 92%, var(--bg));
+}
 .quiz-shake { animation: shake .4s; }
 @keyframes quizCorrect { 0% { transform: scale(.98); opacity: .7; } 55% { transform: scale(1.015); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 

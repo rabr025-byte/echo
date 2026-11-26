@@ -201,13 +201,13 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
       {!answered && (
         <button onClick={() => game.setStake(!stake)}
           className={`quiz-stake mb-5 self-start px-4 py-2 rounded-full border text-xs font-black tracking-widest transition-all active:scale-95 ${
-            stake ? 'animate-heart-panic' : ''
+            stake ? 'quiz-stake-active animate-heart-panic' : 'quiz-stake-idle'
           }`}
           style={stake ? {
             borderColor: 'var(--combo)', color: 'var(--combo)',
             background: 'color-mix(in srgb, var(--combo) 12%, transparent)',
             boxShadow: '0 0 14px color-mix(in srgb, var(--combo) 50%, transparent)',
-          } : { borderColor: 'var(--border)', color: 'var(--fg-dim)' }}>
+          } : undefined}>
           <span className="flex items-center gap-1.5">
             <Dice5 size={14} />
             {stake ? '賭注中 · 分數×2 / 答錯扣 2 心' : '押賭注'}
@@ -277,7 +277,7 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
       {answered && (
         <div className="mt-6">
           {current.explanation && (
-            <div className="p-4 rounded-xl bg-card border border-theme-border mb-4">
+            <div className="quiz-explanation p-4 rounded-xl bg-card border border-theme-border mb-4">
               <div className="text-fg-dim text-[10px] tracking-widest mb-1">詳解</div>
               <p className="text-sm text-fg/70 leading-relaxed">{current.explanation}</p>
             </div>

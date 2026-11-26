@@ -18,3 +18,4 @@ dist/
 # 題庫已搬到 ~/Documents/echo題庫，這行是備援
 題庫/
 *ipas*.json
+.claude-test/

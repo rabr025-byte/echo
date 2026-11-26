@@ -48,11 +48,11 @@ export const Result = ({ game, onReplay, onMenu }: Props) => {
   }, [g.celebrate]);
 
   return (
-    <div className="result-shell min-h-screen max-w-md mx-auto w-full px-5 pb-10 flex flex-col items-center justify-center gap-7 relative overflow-hidden safe-top">
+    <div className="result-shell min-h-screen max-w-md mx-auto w-full px-5 pb-10 flex flex-col items-center justify-center relative overflow-hidden safe-top">
       {/* 慶祝粒子(從底部往上噴) */}
       <div className="fixed inset-0 pointer-events-none flex items-end justify-center pb-20">
         {particles.map(p => (
-          <div key={p.id} className="absolute w-2.5 h-2.5 rounded-full animate-particle"
+          <div key={p.id} className="absolute result-particle rounded-full animate-particle"
             style={{ background: 'var(--accent)', '--dx': `${p.dx}px`, '--dy': `${p.dy}px`,
               animationDelay: `${p.delay}s`, animationDuration: '1.2s' } as React.CSSProperties} />
         ))}
@@ -63,21 +63,21 @@ export const Result = ({ game, onReplay, onMenu }: Props) => {
         <div className={`result-score ${g.celebrate >= 2 ? 'animate-pop' : ''}`}
           style={{ color: g.celebrate > 0 ? 'var(--accent)' : 'var(--fg)',
             textShadow: g.celebrate >= 2 ? '0 0 30px color-mix(in srgb, var(--accent) 60%, transparent)' : 'none' }}>
-          {pct}<span className="text-3xl">%</span>
+          {pct}<span className="result-percent">%</span>
         </div>
         <div className="result-caption">答對 {score} / {total} 題</div>
         {newRecord && (
-          <div className="mt-3 inline-block px-4 py-1.5 rounded-full text-xs font-black tracking-widest animate-pop"
+          <div className="result-badge mt-3 inline-block rounded-full font-black tracking-widest animate-pop"
             style={{ background: 'color-mix(in srgb, var(--combo) 15%, transparent)', color: 'var(--combo)',
               border: '1px solid color-mix(in srgb, var(--combo) 50%, transparent)' }}>
-            <span className="flex items-center gap-1.5"><Trophy size={14} /> 新紀錄!超越了上次的自己</span>
+            <span className="flex items-center gap-1.5"><Trophy size={18} strokeWidth={1.8} /> 新紀錄!超越了上次的自己</span>
           </div>
         )}
         {dailyAllDone && (
-          <div className="mt-2 inline-block px-4 py-1.5 rounded-full text-xs font-black tracking-widest animate-pop"
+          <div className="result-badge mt-2 inline-block rounded-full font-black tracking-widest animate-pop"
             style={{ background: 'color-mix(in srgb, var(--good) 15%, transparent)', color: 'var(--good)',
               border: '1px solid color-mix(in srgb, var(--good) 50%, transparent)' }}>
-            <span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> 今日任務全部完成!</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 size={18} strokeWidth={1.8} /> 今日任務全部完成!</span>
           </div>
         )}
       </div>
@@ -93,13 +93,13 @@ export const Result = ({ game, onReplay, onMenu }: Props) => {
         </div>
       </div>
 
-      <div className="w-full flex flex-col gap-3">
+      <div className="result-actions w-full flex flex-col gap-3">
         <button onClick={onReplay} data-testid="result-replay"
-          className="result-primary w-full py-4 rounded-2xl bg-accent text-accent-fg font-bold tracking-widest active:scale-[0.98] transition-all">
+          className="result-primary w-full bg-accent text-accent-fg font-bold tracking-widest active:scale-[0.98] transition-all">
           再來一次
         </button>
         <button onClick={onMenu} data-testid="result-menu"
-          className="result-secondary w-full py-3 rounded-2xl border border-theme-border text-fg/70 font-bold tracking-widest active:scale-[0.98] transition-all">
+          className="result-secondary w-full border border-theme-border text-fg/70 font-bold tracking-widest active:scale-[0.98] transition-all">
           回選單
         </button>
       </div>

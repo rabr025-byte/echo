@@ -1,14 +1,16 @@
 /* 題庫管理與指南：arcade-meets-editorial，所有色彩走主題 token。 */
 .bank-overlay,
 .guide-overlay {
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(9px);
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(10px);
 }
 
 .bank-sheet,
 .guide-sheet {
+  box-sizing: border-box;
   background: var(--bg);
-  border-top: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 88%, var(--fg));
+  border-bottom: 0;
   border-radius: 28px 28px 0 0;
   box-shadow: 0 -18px 50px color-mix(in srgb, var(--fg) 8%, transparent);
 }
@@ -47,22 +49,24 @@
 }
 .bank-close {
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   place-items: center;
   border: 1px solid var(--border);
   border-radius: 50%;
   color: var(--fg-dim);
 }
+.bank-close:hover,
+.bank-close:focus-visible { color: var(--fg); border-color: var(--accent); outline: none; }
 
-.bank-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 20px; }
+.bank-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
 .bank-action {
   display: flex;
-  min-height: 60px;
+  min-height: 56px;
   align-items: center;
   justify-content: center;
   gap: 9px;
-  border-radius: 16px;
+  border-radius: 14px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 800;
@@ -71,34 +75,36 @@
 .bank-action-primary { color: var(--accent-fg); background: var(--accent); box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 17%, transparent); }
 .bank-action-secondary { border: 1px solid var(--border); color: var(--fg); background: var(--card); }
 .bank-action span:last-child { display: flex; flex-direction: column; gap: 3px; }
-.bank-action small { color: color-mix(in srgb, currentColor 64%, transparent); font-size: 9px; font-weight: 600; letter-spacing: .04em; }
+.bank-action small { color: color-mix(in srgb, currentColor 68%, transparent); font-size: 10px; font-weight: 600; letter-spacing: .04em; }
 .bank-plus { font-size: 24px; font-weight: 300; line-height: 1; }
 
 .bank-list { display: grid; gap: 8px; }
 .bank-row {
   display: flex;
-  min-height: 72px;
+  min-height: 68px;
   align-items: center;
   gap: 10px;
-  padding: 10px 10px 10px 8px;
+  padding: 9px 9px 9px 8px;
   border: 1px solid var(--border);
-  border-radius: 17px;
-  background: color-mix(in srgb, var(--card) 82%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--card) 88%, var(--bg));
   transition: border-color .2s ease, background .2s ease;
 }
-.bank-row.is-picked { border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); background: color-mix(in srgb, var(--accent) 11%, var(--card)); }
+.bank-row.is-picked { border-color: color-mix(in srgb, var(--accent) 68%, var(--border)); background: color-mix(in srgb, var(--accent) 14%, var(--card)); }
 .bank-row.is-current { box-shadow: inset 3px 0 0 var(--accent); }
 .bank-check { display: grid; width: 32px; height: 38px; place-items: center; color: var(--fg-dim); }
 .is-picked .bank-check { color: var(--accent); }
 .bank-row-main { min-width: 0; flex: 1; }
 .bank-row-title { display: flex; min-width: 0; align-items: center; gap: 9px; }
 .bank-letter { display: grid; width: 28px; height: 28px; flex: 0 0 28px; place-items: center; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border)); border-radius: 8px; color: var(--accent); font-size: 12px; font-weight: 900; }
-.bank-name { overflow: hidden; color: var(--fg); font-size: 14px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
-.bank-row-meta { display: flex; align-items: center; gap: 7px; margin: 5px 0 0 37px; color: var(--fg-dim); font-size: 10px; }
+.bank-name { overflow: hidden; color: var(--fg); font-size: 15px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.bank-row-meta { display: flex; align-items: center; gap: 7px; margin: 4px 0 0 37px; color: var(--fg-dim); font-size: 11px; }
 .bank-row-status { color: var(--accent); font-size: 9px; font-weight: 800; letter-spacing: .05em; }
 .bank-row:not(.is-current) .bank-row-status { color: var(--fg-dim); }
-.bank-delete { display: grid; min-width: 34px; min-height: 34px; place-items: center; border-radius: 9px; color: var(--fg-dim); }
-.bank-delete.is-pending { min-width: 70px; border: 1px solid color-mix(in srgb, var(--bad) 55%, transparent); background: color-mix(in srgb, var(--bad) 12%, transparent); color: var(--bad); font-size: 10px; font-weight: 900; }
+.bank-delete { display: grid; width: 34px; min-width: 34px; min-height: 34px; place-items: center; border-radius: 9px; color: var(--fg-dim); }
+.bank-delete:hover,
+.bank-delete:focus-visible { color: var(--bad); outline: none; }
+.bank-delete.is-pending { width: 72px; min-width: 72px; border: 1px solid color-mix(in srgb, var(--bad) 60%, var(--border)); background: color-mix(in srgb, var(--bad) 14%, var(--card)); color: var(--bad); font-size: 10px; font-weight: 900; }
 .bank-picked-cta { width: 100%; margin-top: 14px; padding: 13px 16px; border-radius: 14px; color: var(--accent-fg); background: var(--accent); font-size: 13px; font-weight: 900; letter-spacing: .07em; }
 .bank-picked-cta span { display: block; margin-top: 4px; color: color-mix(in srgb, var(--accent-fg) 68%, transparent); font-size: 10px; font-weight: 600; letter-spacing: 0; }
 .bank-error { margin-top: 14px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--bad) 34%, transparent); border-radius: 14px; color: var(--bad); background: color-mix(in srgb, var(--bad) 9%, transparent); font-size: 11px; }
@@ -109,13 +115,13 @@
 .guide-intro { margin: -6px 0 20px; font-size: 12px; }
 .guide-card,
 .guide-callout,
-.guide-note { margin-bottom: 12px; padding: 15px; border: 1px solid var(--border); border-radius: 18px; background: color-mix(in srgb, var(--card) 82%, transparent); }
+.guide-note { margin-bottom: 12px; padding: 15px; border: 1px solid var(--border); border-radius: 16px; background: color-mix(in srgb, var(--card) 88%, var(--bg)); }
 .guide-callout { border-color: color-mix(in srgb, var(--accent) 38%, var(--border)); background: color-mix(in srgb, var(--accent) 7%, var(--card)); }
 .guide-note { background: transparent; }
 .guide-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .guide-card-title { color: var(--fg); font-size: 13px; font-weight: 900; letter-spacing: .06em; }
 .guide-index { display: inline-block; margin-right: 8px; color: var(--accent); font-family: ui-monospace, SFMono-Regular, monospace; font-size: 10px; letter-spacing: .08em; }
-.guide-copy { display: inline-flex; align-items: center; gap: 6px; padding: 7px 9px; border-radius: 9px; color: var(--accent-fg); background: var(--accent); font-size: 10px; font-weight: 900; white-space: nowrap; }
+.guide-copy { display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 10px; color: var(--accent-fg); background: var(--accent); font-size: 10px; font-weight: 900; white-space: nowrap; }
 .guide-copy.is-copied { color: var(--accent-fg); background: var(--good); }
 .guide-card-copy { margin: 8px 0 0; color: var(--fg-dim); font-size: 11px; line-height: 1.7; }
 .guide-code-preview,
