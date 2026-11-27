@@ -14,6 +14,8 @@ interface Props {
 
 interface Particle { id: number; dx: number; dy: number; }
 
+const QUIZ_TIP_KEY = 'echo:quiz_tip_seen';
+
 export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props) => {
   const { current, currentIdx, questions, selected, answered, hp, combo, comboBurst, points, floats, shake, HP_MAX, stake, ghost, timer } = game;
   const [aiText, setAiText] = useState('');
@@ -22,6 +24,7 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
   const [gradeResult, setGradeResult] = useState<{ score: number; comment: string } | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
+  const [showQuizTip] = useState(() => !localStorage.getItem(QUIZ_TIP_KEY));
 
   const [flash, setFlash] = useState(false);
   const [particles, setParticles] = useState<Particle[]>([]);
@@ -61,6 +64,10 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
   // 換題清空申論輸入與評分/AI 詳解
   useEffect(() => { setEssayInput(''); setGradeResult(null); setAiText(''); setAiError(''); }, [currentIdx]);
 
+  useEffect(() => {
+    if (showQuizTip) localStorage.setItem(QUIZ_TIP_KEY, '1');
+  }, [showQuizTip]);
+
   if (!current) return null;
 
   const handleAi = async () => {
@@ -78,6 +85,12 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
   };
 
   const isEssay = current.type === 'essay';
+
+  const handleQuit = () => {
+    const hasAnswered = currentIdx > 0 || answered;
+    if (hasAnswered && !window.confirm('要離開嗎？這局不會記分')) return;
+    onQuit();
+  };
 
   const handleEssaySubmit = async () => {
     if (!onGradeEssay || essayInput.trim().length < 10) return;
@@ -169,14 +182,14 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
                   color: alive ? 'var(--bad)' : 'color-mix(in srgb, var(--fg-dim) 35%, transparent)',
                   filter: alive ? 'drop-shadow(0 0 4px color-mix(in srgb, var(--bad) 50%, transparent))' : 'none',
                 }}>
-                <Heart size={17} fill={alive ? 'currentColor' : 'none'} strokeWidth={alive ? 0 : 1.5} />
+                <Heart aria-hidden="true" size={17} fill={alive ? 'currentColor' : 'none'} strokeWidth={alive ? 0 : 1.5} />
               </span>
             );
           })}
         </div>
         </div>
         <div className="quiz-points"><span className="quiz-eyebrow">分數</span><strong>{points}</strong></div>
-        <button onClick={onQuit} className="quiz-exit" aria-label="結束本局">離開</button>
+        <button onClick={handleQuit} className="quiz-exit" aria-label="結束本局">離開</button>
         </div>
         <div className="quiz-hud-subrow">
           <div className="quiz-progress-track"><span style={{ width: `${((currentIdx + (answered ? 1 : 0)) / questions.length) * 100}%` }} /></div>
@@ -192,10 +205,16 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
             <button
               onClick={() => game.answer(current.answer, window.innerWidth / 2, window.innerHeight / 3)}
               className="text-combo text-xs tracking-widest border border-theme-border rounded-lg px-2 py-1 active:scale-95">
-              <span className="flex items-center gap-1"><Zap size={12} />自動答對</span>
+              <span className="flex items-center gap-1"><Zap aria-hidden="true" size={12} />自動答對</span>
             </button>
           )}
       </div>
+
+      {showQuizTip && (
+        <p className="quiz-first-tip" data-testid="quiz-first-tip">
+          可押賭注：分數×2，答錯扣 2 心。
+        </p>
+      )}
 
       {/* 賭注模式:答題前可押,分數×2 但答錯扣 2 顆心 */}
       {!answered && (
@@ -209,7 +228,7 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
             boxShadow: '0 0 14px color-mix(in srgb, var(--combo) 50%, transparent)',
           } : undefined}>
           <span className="flex items-center gap-1.5">
-            <Dice5 size={14} />
+            <Dice5 aria-hidden="true" size={14} />
             {stake ? '賭注中 · 分數×2 / 答錯扣 2 心' : '押賭注'}
           </span>
         </button>
@@ -288,7 +307,7 @@ export const Quiz = ({ game, onQuit, onAiExplain, onGradeEssay, devMode }: Props
               {!aiText && !aiLoading && (
                 <button onClick={handleAi}
                   className="w-full py-3 rounded-xl border border-theme-border text-fg-dim text-sm font-bold tracking-widest active:scale-[0.98] transition-all">
-                  <span className="flex items-center justify-center gap-1.5"><Sparkles size={14} /> AI 解讀這題</span>
+                  <span className="flex items-center justify-center gap-1.5"><Sparkles aria-hidden="true" size={14} /> AI 解讀這題</span>
                 </button>
               )}
               {aiLoading && <div className="w-full py-3 text-center text-fg-dim text-sm animate-pulse">AI 思考中…</div>}

@@ -52,7 +52,7 @@ ${FORMAT_BLOCK}
 - 詳解精簡,控制在 30 字內(避免輸出過長)
 - **每一題都要有 source 欄位**,標明這題出自資料的哪個章節、頁碼或段落標題(例如「第3章 3.2 節」「114年第二梯次 第5題」)。找不到明確章節時,填該段落的主題名稱`;
 
-const EXAM_PROMPT = `我會提供一份文件/教材。請根據內容製作刷題題庫 JSON。
+export const EXAM_PROMPT = `我會提供一份文件/教材。請根據內容製作刷題題庫 JSON。
 
 ${RULES_COMMON}
 
@@ -62,7 +62,7 @@ ${RULES_COMMON}
 - 涵蓋文件各章節,不要集中在同一段
 - 申論題的 rubric 要具體列出應提到的關鍵概念`;
 
-const LIFE_PROMPT = `我會提供一份資料(筆記/食譜/書摘等)。請根據內容製作問答遊戲題庫 JSON。
+export const LIFE_PROMPT = `我會提供一份資料(筆記/食譜/書摘等)。請根據內容製作問答遊戲題庫 JSON。
 
 ${RULES_COMMON}
 

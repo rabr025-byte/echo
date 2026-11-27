@@ -1,6 +1,6 @@
 // src/components/StatsPanel.tsx
 // [Echo] 戰績面板 — 圖鑑矩陣(每題掌握度)+ 歷史紀錄排行
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import type { QuestionBank } from '../types/bank';
 import { loadStats, loadRecords } from '../lib/storage';
 import { X } from 'lucide-react';
@@ -19,7 +19,15 @@ const MODE_LABEL: Record<string, string> = {
 const fmtTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 export const StatsPanel = ({ bank, onClose }: Props) => {
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(typeof document !== 'undefined' && document.activeElement instanceof HTMLElement ? document.activeElement : null);
   const [tab, setTab] = useState<'matrix' | 'records'>('matrix');
+  useEffect(() => {
+    sheetRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKeyDown);
+    return () => { document.removeEventListener('keydown', onKeyDown); returnFocusRef.current?.focus(); };
+  }, []);
   const stats = useMemo(() => loadStats(bank.bankId), [bank.bankId]);
   const records = useMemo(() => loadRecords(bank.bankId), [bank.bankId]);
 
@@ -38,21 +46,22 @@ export const StatsPanel = ({ bank, onClose }: Props) => {
   );
 
   return (
-    <div className="stats-panel-visual fixed inset-0 z-50 bg-bg/95 backdrop-blur-sm flex flex-col justify-end">
-      <div className="stats-sheet max-w-md mx-auto w-full bg-bg p-6 pb-12 max-h-[88vh] overflow-y-auto safe-bottom">
+    <div className="stats-panel-visual fixed inset-0 z-50 bg-bg/95 backdrop-blur-sm flex flex-col justify-end" role="dialog" aria-modal="true" aria-labelledby="stats-title">
+      <div ref={sheetRef} tabIndex={-1} className="stats-sheet max-w-md mx-auto w-full bg-bg p-6 pb-12 max-h-[88vh] overflow-y-auto safe-bottom">
         <div className="stats-heading flex justify-between items-start mb-5">
           <div>
             <div className="stats-kicker">圖鑑紀錄</div>
-            <h2 className="text-2xl font-black tracking-widest">戰績</h2>
+            <h2 id="stats-title" className="text-2xl font-black tracking-widest">戰績</h2>
           </div>
-          <button onClick={onClose} className="stats-close text-fg-dim" aria-label="關閉戰績"><X size={20} /></button>
+          <button onClick={onClose} className="stats-close text-fg-dim" aria-label="關閉戰績"><X aria-hidden="true" size={20} /></button>
         </div>
 
         {/* 分頁切換 */}
         <div className="stats-tabs flex gap-5 mb-6" role="tablist" aria-label="戰績分類">
           {([['matrix', '圖鑑'], ['records', '紀錄']] as const).map(([id, label]) => (
             <button key={id} onClick={() => setTab(id)}
-              role="tab" aria-selected={tab === id}
+              id={`stats-tab-${id}`} role="tab" aria-selected={tab === id}
+              aria-controls={`stats-panel-${id}`}
               className={`stats-tab text-xs font-bold tracking-widest transition-all ${tab === id ? 'is-active' : ''}`}>
               {label}
             </button>
@@ -60,7 +69,7 @@ export const StatsPanel = ({ bank, onClose }: Props) => {
         </div>
 
         {tab === 'matrix' && (
-          <>
+          <section id="stats-panel-matrix" role="tabpanel" aria-labelledby="stats-tab-matrix">
             {/* 概況 */}
             <div className="stats-hero mb-6">
               <div className="stats-kicker">已掌握題目</div>
@@ -99,11 +108,11 @@ export const StatsPanel = ({ bank, onClose }: Props) => {
                 </span>
               ))}
             </div>
-          </>
+          </section>
         )}
 
         {tab === 'records' && (
-          <div className="stats-records flex flex-col">
+          <div id="stats-panel-records" role="tabpanel" aria-labelledby="stats-tab-records" className="stats-records flex flex-col">
             {ranked.length === 0 && (
               <p className="text-fg-dim text-sm text-center py-8">還沒有紀錄,先玩一局吧</p>
             )}

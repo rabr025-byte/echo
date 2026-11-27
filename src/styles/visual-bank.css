@@ -78,6 +78,23 @@
 .bank-action small { color: color-mix(in srgb, currentColor 68%, transparent); font-size: 10px; font-weight: 600; letter-spacing: .04em; }
 .bank-plus { font-size: 24px; font-weight: 300; line-height: 1; }
 
+.bank-ai-card { margin: 0 0 18px; padding: 16px; border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border)); border-radius: 18px; background: color-mix(in srgb, var(--accent) 7%, var(--card)); }
+.bank-ai-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.bank-ai-kicker { margin: 0 0 4px; color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+.bank-ai-head h3 { margin: 0; color: var(--fg); font-size: 17px; font-weight: 900; }
+.bank-ai-badge { padding: 5px 8px; border-radius: 99px; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); font-size: 10px; font-weight: 900; white-space: nowrap; }
+.bank-ai-steps { display: grid; gap: 11px; margin: 15px 0 16px; padding: 0; list-style: none; }
+.bank-ai-steps li { display: flex; align-items: flex-start; gap: 10px; }
+.bank-step-number { display: grid; width: 22px; height: 22px; flex: 0 0 22px; place-items: center; border-radius: 50%; color: var(--accent-fg); background: var(--accent); font-size: 11px; font-weight: 900; }
+.bank-ai-steps strong, .bank-ai-steps small { display: block; }
+.bank-ai-steps strong { color: var(--fg); font-size: 12px; }
+.bank-ai-steps small { margin-top: 2px; color: var(--fg-dim); font-size: 11px; line-height: 1.5; }
+.bank-prompt-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.bank-prompt-button { padding: 6px 9px; border: 1px solid var(--border); border-radius: 8px; color: var(--accent); background: var(--bg); font-size: 10px; font-weight: 800; }
+.bank-paste-label { display: block; margin-bottom: 6px; color: var(--fg); font-size: 11px; font-weight: 900; }
+.bank-paste { display: block; box-sizing: border-box; width: 100%; min-height: 140px; resize: vertical; padding: 11px; border: 1px solid var(--border); border-radius: 11px; color: var(--fg); background: var(--bg); font: 11px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.bank-paste:focus { border-color: var(--accent); outline: 2px solid color-mix(in srgb, var(--accent) 30%, transparent); outline-offset: 1px; }
+.bank-paste-submit { width: 100%; margin-top: 9px; padding: 11px 14px; border-radius: 10px; color: var(--accent-fg); background: var(--accent); font-size: 12px; font-weight: 900; }
 .bank-list { display: grid; gap: 8px; }
 .bank-row {
   display: flex;
@@ -136,4 +153,6 @@
   .guide-card-head { align-items: flex-start; }
   .guide-card-title { font-size: 12px; }
   .guide-copy { padding: 7px 8px; font-size: 9px; }
+  .bank-ai-card { padding: 13px; }
+  .bank-ai-head h3 { font-size: 16px; }
 }

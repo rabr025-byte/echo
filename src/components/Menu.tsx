@@ -135,7 +135,7 @@ export const Menu = ({
     </div>
 
     {/* 錯題本 */}
-    <button onClick={() => onStart('mistake')} disabled={mistakeCount === 0}
+    <button onClick={() => onStart('mistake')} disabled={mistakeCount === 0} data-testid="menu-mistakes"
       className="menu-secondary-row card-rise w-full border border-theme-border bg-card active:scale-[0.99] transition-transform mb-6 flex justify-between items-center disabled:opacity-30"
       style={{ animationDelay: '0.22s' }}>
         <span className="menu-row-title font-bold tracking-widest flex items-center gap-2"><BookOpen size={18} strokeWidth={1.8} className="text-fg-dim" />錯題本</span>

@@ -38,6 +38,19 @@ export const App = () => {
   const [streak, setStreak] = useState<StreakData | null>(null);
   const [showStreak, setShowStreak] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [importToast, setImportToast] = useState('');
+
+  // 匯入成功後在選單顯示短暫提示。
+  useEffect(() => {
+    if (!importToast) return;
+    const timer = window.setTimeout(() => setImportToast(''), 2500);
+    return () => window.clearTimeout(timer);
+  }, [importToast]);
+
+  // 已經玩完一局的人，回到選單不再跳出新手導覽（視為已上手）
+  useEffect(() => {
+    if (view === 'result') { try { localStorage.setItem('echo:tutorial_done', '1'); } catch { /* ignore */ } setShowTutorial(false); }
+  }, [view]);
 
   // 首次開啟且題庫載入完成 → 啟動導引
   useEffect(() => {
@@ -88,26 +101,39 @@ export const App = () => {
     </div>
   );
 
-  return <GameShell
-    bank={bank}
-    view={view} setView={setView}
-    showPicker={showPicker} setShowPicker={setShowPicker}
-    showSettings={showSettings} setShowSettings={setShowSettings}
-    settings={settings}
-    onSaveSettings={(s) => { setSettings(s); saveSettings(s); }}
-    mistakeCount={mistakeCount}
-    showTutorial={showTutorial} onTutorialDone={() => setShowTutorial(false)}
-    streak={streak}
-    showStreak={showStreak} setShowStreak={setShowStreak}
-    defaultBank={defaultBank}
-    onPickBank={(bs) => {
-      const composed = composeBanks(bs);
-      setBank(composed);
-      // 只有單一題庫才記為「下次自動載入」,組合是臨時的
-      if (bs.length === 1) setActiveBankId(bs[0].bankId);
-      setShowPicker(false); setView('menu');
-    }}
-  />;
+  return (
+    <>
+      <GameShell
+        bank={bank}
+        view={view} setView={setView}
+        showPicker={showPicker} setShowPicker={setShowPicker}
+        showSettings={showSettings} setShowSettings={setShowSettings}
+        settings={settings}
+        onSaveSettings={(s) => { setSettings(s); saveSettings(s); }}
+        mistakeCount={mistakeCount}
+        showTutorial={showTutorial} onTutorialDone={() => setShowTutorial(false)}
+        streak={streak}
+        showStreak={showStreak} setShowStreak={setShowStreak}
+        defaultBank={defaultBank}
+        onPickBank={(bs) => {
+          const composed = composeBanks(bs);
+          setBank(composed);
+          // 只有單一題庫才記為「下次自動載入」,組合是臨時的
+          if (bs.length === 1) setActiveBankId(bs[0].bankId);
+          setShowPicker(false); setView('menu');
+        }}
+        onImportSuccess={(imported) => {
+          setImportToast(`已加入《${imported.displayName}》・共 ${imported.questions.length} 題`);
+        }}
+      />
+      {view === 'menu' && importToast && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl bg-accent text-accent-fg text-sm font-bold tracking-widest z-50"
+          role="status" aria-live="polite">
+          {importToast}
+        </div>
+      )}
+    </>
+  );
 };
 
 // 把遊戲邏輯獨立成一層,確保 useGame 綁定當前 bank
@@ -115,7 +141,7 @@ function GameShell({
   bank, view, setView, showPicker, setShowPicker,
   showSettings, setShowSettings, settings, onSaveSettings,
   mistakeCount, showTutorial, onTutorialDone, streak, showStreak, setShowStreak,
-  defaultBank, onPickBank,
+  defaultBank, onPickBank, onImportSuccess,
 }: {
   bank: QuestionBank;
   view: View; setView: (v: View) => void;
@@ -128,6 +154,7 @@ function GameShell({
   showStreak: boolean; setShowStreak: (b: boolean) => void;
   defaultBank: QuestionBank | null;
   onPickBank: (bs: QuestionBank[]) => void;
+  onImportSuccess: (bank: QuestionBank) => void;
 }) {
   const game = useGame(bank);
   const [toast, setToast] = useState('');
@@ -234,11 +261,14 @@ function GameShell({
       {view === 'result' && (
         <Result game={game}
           onReplay={() => { handleStart(game.mode); }}
+          mistakeCount={mistakeCount}
+          onPracticeMistakes={() => { handleStart('mistake'); }}
           onMenu={() => { game.quit(); setView('menu'); }} />
       )}
 
       {showPicker && (
-        <BankPicker current={bank} defaultBank={defaultBank} onPick={onPickBank} onClose={() => setShowPicker(false)} />
+        <BankPicker current={bank} defaultBank={defaultBank} onPick={onPickBank}
+          onImportSuccess={onImportSuccess} onClose={() => setShowPicker(false)} />
       )}
 
       {showSettings && (
@@ -246,7 +276,7 @@ function GameShell({
           onOpenGuide={() => setShowGuide(true)} />
       )}
 
-      {showTutorial && <Tutorial onDone={onTutorialDone} />}
+      {showTutorial && view === 'menu' && <Tutorial onDone={onTutorialDone} />}
 
       {showStreak && streak && (
         <StreakCalendar streak={streak} onClose={() => setShowStreak(false)} />

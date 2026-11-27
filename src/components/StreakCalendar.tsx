@@ -1,6 +1,7 @@
 // src/components/StreakCalendar.tsx
 // [Echo] 連續登入月曆 — 移植播種計畫驗證過的設計:
 // 已登入金色實心+光暈遞增、今天呼吸燈、明天淡輪廓(缺口心理學)、月進度條
+import { useEffect, useRef } from 'react';
 import type { StreakData } from '../lib/streak';
 import { Flame } from 'lucide-react';
 import '../styles/visual-stats.css';
@@ -11,6 +12,14 @@ interface Props {
 }
 
 export const StreakCalendar = ({ streak, onClose }: Props) => {
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(typeof document !== 'undefined' && document.activeElement instanceof HTMLElement ? document.activeElement : null);
+  useEffect(() => {
+    sheetRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKeyDown);
+    return () => { document.removeEventListener('keydown', onKeyDown); returnFocusRef.current?.focus(); };
+  }, []);
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth();
@@ -32,12 +41,12 @@ export const StreakCalendar = ({ streak, onClose }: Props) => {
   const monthCount = streak.days.filter(d => d.startsWith(monthPrefix)).length;
 
   return (
-    <div className="streak-calendar-visual fixed inset-0 z-50 bg-bg/95 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
-      <div className="streak-sheet w-full max-w-xs bg-bg p-6"
+    <div className="streak-calendar-visual fixed inset-0 z-50 bg-bg/95 backdrop-blur-sm flex items-center justify-center p-6" role="dialog" aria-modal="true" aria-labelledby="streak-title" onClick={onClose}>
+      <div ref={sheetRef} tabIndex={-1} className="streak-sheet w-full max-w-xs bg-bg p-6"
         onClick={e => e.stopPropagation()}>
         {/* 連續天數 */}
         <div className="text-center mb-5">
-          <div className="text-fg-dim text-[10px] tracking-[0.3em] uppercase mb-1">連續登入</div>
+          <div id="streak-title" className="text-fg-dim text-[10px] tracking-[0.3em] uppercase mb-1">連續登入</div>
           <div className="streak-hero-value text-5xl font-black tabular-nums">
             <Flame size={25} strokeWidth={1.8} aria-hidden="true" />
             {streak.current}<span className="text-lg ml-1">天</span>

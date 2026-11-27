@@ -5,7 +5,7 @@
 .settings-eyebrow, .settings-section-index { color: var(--accent); font-size: 9px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; }
 .settings-title { margin: 7px 0 5px; font-size: 28px; line-height: 1; letter-spacing: .08em; }
 .settings-subtitle { margin: 0; color: var(--fg-dim); font-size: 12px; line-height: 1.6; }
-.settings-close { display: grid; place-items: center; width: 40px; height: 40px; color: var(--fg-dim); border: 1px solid var(--border); border-radius: 50%; }
+.settings-close { display: grid; place-items: center; width: 44px; height: 44px; color: var(--fg-dim); border: 1px solid var(--border); border-radius: 50%; }
 .settings-close:focus-visible, .settings-guide-row:focus-visible, .settings-theme-swatch:focus-visible, .settings-segmented button:focus-visible, .settings-switch:focus-visible, .settings-cancel:focus-visible, .settings-save:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .settings-content { min-height: 0; padding: 0 20px 24px; overflow-y: auto; overscroll-behavior: contain; }
 .settings-section { border-top: 1px solid var(--border); padding: 20px 0 7px; }
@@ -24,7 +24,7 @@
 .settings-swatch-dot { width: 4px; height: 4px; background: var(--swatch-accent); border-radius: 50%; }
 .settings-swatch-card { width: 7px; height: 6px; background: var(--swatch-accent); opacity: .65; border-radius: 2px; }
 .settings-segmented { display: flex; gap: 6px; }
-.settings-segmented button { flex: 1; min-height: 42px; padding: 0 8px; color: var(--fg-dim); background: transparent; border: 1px solid var(--border); border-radius: 11px; font-size: 12px; font-weight: 700; }
+.settings-segmented button { flex: 1; min-height: 44px; padding: 0 8px; color: var(--fg-dim); background: transparent; border: 1px solid var(--border); border-radius: 11px; font-size: 12px; font-weight: 700; }
 .settings-segmented button.is-selected { color: var(--accent-fg); background: var(--accent); border-color: var(--accent); }
 .settings-input { width: 100%; min-height: 48px; padding: 0 13px; color: var(--fg); background: color-mix(in srgb, var(--card) 92%, var(--bg)); border: 1px solid var(--border); border-radius: 11px; outline: none; font-size: 14px; }
 .settings-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }

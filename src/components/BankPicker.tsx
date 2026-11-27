@@ -7,20 +7,23 @@ import { loadBanks, saveBank, deleteBank, storageUsage } from '../lib/bankStore'
 import { Trash2, Upload, X, Square, CheckSquare } from 'lucide-react';
 import { mergeBanks } from '../lib/composeBank';
 import { parseBankJson } from '../lib/parseBankJson';
+import { EXAM_PROMPT, LIFE_PROMPT } from './BankGuide';
 import '../styles/visual-bank.css';
 
 interface Props {
   current: QuestionBank;
   defaultBank: QuestionBank | null;   // 內建預設題庫(不可刪除)
   onPick: (banks: QuestionBank[]) => void;   // 可回傳多份(複選一起測驗)
+  onImportSuccess: (bank: QuestionBank) => void;
   onClose: () => void;
 }
 
-export const BankPicker = ({ current, defaultBank, onPick, onClose }: Props) => {
+export const BankPicker = ({ current, defaultBank, onPick, onImportSuccess, onClose }: Props) => {
   const [errors, setErrors] = useState<string[]>([]);
   const [saved, setSaved] = useState<QuestionBank[]>(loadBanks);
   const [confirmDel, setConfirmDel] = useState<string>('');
   const [picked, setPicked] = useState<Set<string>>(new Set());   // 複選:一起測驗的題庫
+  const [pasteText, setPasteText] = useState('');
 
   const allBanks = [...(defaultBank ? [defaultBank] : []), ...saved];
   const togglePick = (bankId: string) =>
@@ -34,18 +37,16 @@ export const BankPicker = ({ current, defaultBank, onPick, onClose }: Props) => 
     if (chosen.length > 0) onPick(chosen);
   };
 
-  // 支援一次選取多個檔案;每個檔案可以是單一題庫或多題庫陣列
-  const handleFiles = async (files: FileList) => {
+  // 檔案與貼上內容共用同一條:parse → validate → merge → save 管線。
+  const importTexts = (items: { label: string; text: string }[], initialErrors: string[] = []) => {
     setErrors([]);
     const okBanks: QuestionBank[] = [];
-    const allErrors: string[] = [];
+    const allErrors: string[] = [...initialErrors];
 
-    for (const file of Array.from(files)) {
-      const text = await file.text().catch(() => null);
-      if (text === null) { allErrors.push(`${file.name}:讀取失敗`); continue; }
-
+    for (const item of items) {
+      const { label, text } = item;
       const pr = parseBankJson(text);
-      if (!pr.ok) { allErrors.push(`${file.name}:${pr.error}`); continue; }
+      if (!pr.ok) { allErrors.push(`${label}:${pr.error}`); continue; }
       const parsed = pr.data;
 
       const rawBanks = Array.isArray(parsed) ? parsed : [parsed];
@@ -53,8 +54,8 @@ export const BankPicker = ({ current, defaultBank, onPick, onClose }: Props) => 
       const validInFile: QuestionBank[] = [];
       rawBanks.forEach((raw, i) => {
         const result = validateBank(raw);
-        const prefix = files.length > 1 || rawBanks.length > 1
-          ? `${file.name}${rawBanks.length > 1 ? ` 第 ${i + 1} 份` : ''}:` : '';
+        const prefix = items.length > 1 || rawBanks.length > 1
+          ? `${label}${rawBanks.length > 1 ? ` 第 ${i + 1} 份` : ''}:` : '';
         if (result.ok) validInFile.push(result.bank!);
         else result.errors.forEach(e => allErrors.push(prefix + e));
       });
@@ -70,13 +71,37 @@ export const BankPicker = ({ current, defaultBank, onPick, onClose }: Props) => 
       let list = saved;
       okBanks.forEach(b => { list = saveBank(b); });
       setSaved(list);
+      const imported = okBanks[0];
+      onPick([imported]);
+      onImportSuccess(imported);
       if (allErrors.length > 0) {
         setErrors([`已匯入 ${okBanks.length} 份題庫,以下未匯入:`, ...allErrors]);
       }
-      onPick([okBanks[0]]);
     } catch (e) {
       setErrors([e instanceof Error ? e.message : '儲存失敗']);
     }
+  };
+
+  // 支援一次選取多個檔案;每個檔案可以是單一題庫或多題庫陣列
+  const handleFiles = async (files: FileList) => {
+    const items: { label: string; text: string }[] = [];
+    const readErrors: string[] = [];
+    for (const file of Array.from(files)) {
+      const text = await file.text().catch(() => null);
+      if (text === null) readErrors.push(`${file.name}:讀取失敗`);
+      else items.push({ label: file.name, text });
+    }
+    if (readErrors.length > 0) setErrors(readErrors);
+    if (items.length > 0) importTexts(items, readErrors);
+    else if (readErrors.length > 0) setErrors(readErrors);
+  };
+
+  const handlePasteImport = () => {
+    if (!pasteText.trim()) {
+      setErrors(['請先把 ChatGPT 的完整回覆貼到上面的框裡']);
+      return;
+    }
+    importTexts([{ label: '貼上的內容', text: pasteText }]);
   };
 
   const handleDelete = (bankId: string) => {
@@ -154,6 +179,33 @@ export const BankPicker = ({ current, defaultBank, onPick, onClose }: Props) => 
             <span><strong>新增題庫</strong><small>從檔案開始</small></span>
           </label>
         </div>
+
+        <section className="bank-ai-card" aria-labelledby="bank-ai-title">
+          <div className="bank-ai-head">
+            <div>
+              <p className="bank-ai-kicker">不用自己寫 JSON</p>
+              <h3 id="bank-ai-title">用 ChatGPT 做題庫</h3>
+            </div>
+            <span className="bank-ai-badge">3 步驟</span>
+          </div>
+          <ol className="bank-ai-steps">
+            <li>
+              <span className="bank-step-number">1</span>
+              <div><strong>複製指令</strong><small>選一個適合你的版本</small>
+                <div className="bank-prompt-buttons">
+                  <button type="button" onClick={() => navigator.clipboard?.writeText(EXAM_PROMPT)} className="bank-prompt-button" aria-label="複製學科版 ChatGPT 指令">學科指令</button>
+                  <button type="button" onClick={() => navigator.clipboard?.writeText(LIFE_PROMPT)} className="bank-prompt-button" aria-label="複製生活版 ChatGPT 指令">生活指令</button>
+                </div>
+              </div>
+            </li>
+            <li><span className="bank-step-number">2</span><div><strong>貼到 ChatGPT</strong><small>再貼上你的筆記、教材或講義</small></div></li>
+            <li><span className="bank-step-number">3</span><div><strong>把回覆整段貼回這裡</strong><small>可以直接貼 JSON、```json 圍欄或含註解的回覆</small></div></li>
+          </ol>
+          <label className="bank-paste-label" htmlFor="bank-paste">ChatGPT 回覆</label>
+          <textarea id="bank-paste" value={pasteText} onChange={e => setPasteText(e.target.value)}
+            className="bank-paste" rows={7} placeholder="把 ChatGPT 的完整回覆貼在這裡…" />
+          <button type="button" onClick={handlePasteImport} className="bank-paste-submit">匯入貼上的題庫</button>
+        </section>
 
         <div className="bank-list">
           {defaultBank && <BankRow bank={defaultBank} deletable={false} />}

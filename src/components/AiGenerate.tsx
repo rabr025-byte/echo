@@ -1,6 +1,6 @@
 // src/components/AiGenerate.tsx
 // [Echo] AI 生題庫 — 三步驟流程:貼筆記、調整選項、預覽並儲存
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Check, ChevronRight, FileText, Save, Sparkles } from 'lucide-react';
 import type { QuestionBank } from '../types/bank';
 import type { AISettings } from '../lib/ai/types';
@@ -28,12 +28,20 @@ function extractJson(text: string): unknown {
 }
 
 export const AiGenerate = ({ settings, onGenerated, onClose }: Props) => {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(typeof document !== 'undefined' && document.activeElement instanceof HTMLElement ? document.activeElement : null);
   const [topic, setTopic] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [stage, setStage] = useState<Stage>('input');
   const [generatedBank, setGeneratedBank] = useState<QuestionBank | null>(null);
+  useEffect(() => {
+    panelRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKeyDown);
+    return () => { document.removeEventListener('keydown', onKeyDown); returnFocusRef.current?.focus(); };
+  }, []);
 
   const difficulty = settings.genDifficulty === 'easy' ? '簡單' : settings.genDifficulty === 'medium' ? '中等' : '困難';
 
@@ -76,8 +84,8 @@ export const AiGenerate = ({ settings, onGenerated, onClose }: Props) => {
   };
 
   return (
-    <div className="visual-ai fixed inset-0 z-50 bg-bg/95 backdrop-blur-sm flex flex-col justify-end">
-      <div className="visual-ai-panel max-w-md mx-auto w-full bg-bg rounded-t-[2rem] max-h-[92vh] overflow-y-auto safe-top">
+    <div className="visual-ai fixed inset-0 z-50 bg-bg/95 backdrop-blur-sm flex flex-col justify-end" role="dialog" aria-modal="true" aria-labelledby="ai-generate-title">
+      <div ref={panelRef} tabIndex={-1} className="visual-ai-panel max-w-md mx-auto w-full bg-bg rounded-t-[2rem] max-h-[92vh] overflow-y-auto safe-top">
         <div className="visual-ai-header flex justify-between items-center">
           <div className="flex items-center gap-3">
             {stage === 'preview' && (
@@ -85,10 +93,10 @@ export const AiGenerate = ({ settings, onGenerated, onClose }: Props) => {
             )}
             <div>
               <div className="visual-ai-kicker">AI 題庫工作室</div>
-              <h2 className="text-xl font-black tracking-widest">{stage === 'preview' ? '預覽題目' : '把筆記變成題庫'}</h2>
+              <h2 id="ai-generate-title" className="text-xl font-black tracking-widest">{stage === 'preview' ? '預覽題目' : '把筆記變成題庫'}</h2>
             </div>
           </div>
-          <button onClick={onClose} className="text-fg-dim text-sm tracking-widest">關閉</button>
+          <button onClick={onClose} className="text-fg-dim text-sm tracking-widest min-h-[44px]">關閉</button>
         </div>
 
         <div className="visual-ai-steps" aria-label="生成步驟">

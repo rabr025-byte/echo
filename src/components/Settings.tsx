@@ -1,6 +1,6 @@
 // src/components/Settings.tsx
 // [Echo] 設定頁 — arcade meets editorial：安靜分組、清楚說明、保留既有行為
-import { useState, type CSSProperties } from 'react';
+import { useState, useEffect, useRef, type CSSProperties } from 'react';
 import { Check, ChevronRight, KeyRound, Moon, Palette, RotateCcw, SlidersHorizontal, Sparkles, Volume2, VolumeX, Vibrate, X } from 'lucide-react';
 import type { AISettings } from '../lib/ai/types';
 import { PROVIDER_LIST } from '../lib/ai';
@@ -21,8 +21,16 @@ const DIFFICULTIES = [
 ] as const;
 
 export const Settings = ({ settings, onSave, onClose, onOpenGuide }: Props) => {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(typeof document !== 'undefined' && document.activeElement instanceof HTMLElement ? document.activeElement : null);
   const [draft, setDraft] = useState<AISettings>(settings);
   const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    panelRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') handleClose(); };
+    document.addEventListener('keydown', onKeyDown);
+    return () => { document.removeEventListener('keydown', onKeyDown); returnFocusRef.current?.focus(); };
+  }, []);
 
   const update = <K extends keyof AISettings>(k: K, v: AISettings[K]) =>
     setDraft(d => ({ ...d, [k]: v }));
@@ -50,12 +58,12 @@ export const Settings = ({ settings, onSave, onClose, onOpenGuide }: Props) => {
   }) as CSSProperties;
 
   return (
-    <div className="settings-backdrop fixed inset-0 z-50 flex flex-col justify-end">
-      <div className="settings-panel max-w-md mx-auto w-full bg-bg max-h-[92vh] overflow-y-auto safe-bottom">
+    <div className="settings-backdrop fixed inset-0 z-50 flex flex-col justify-end" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div ref={panelRef} tabIndex={-1} className="settings-panel max-w-md mx-auto w-full bg-bg max-h-[92vh] overflow-y-auto safe-bottom">
         <header className="settings-header">
           <div>
             <div className="settings-eyebrow">ECHO / CONTROL ROOM</div>
-            <h2 className="settings-title">設定</h2>
+            <h2 id="settings-title" className="settings-title">設定</h2>
             <p className="settings-subtitle">調整你的練習節奏，變更會在儲存後保留。</p>
           </div>
           <button onClick={handleClose} className="settings-close" aria-label="關閉設定">

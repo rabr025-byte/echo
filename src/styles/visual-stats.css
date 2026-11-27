@@ -1,7 +1,9 @@
 /* 三個輔助畫面的視覺層：沿用主題變數，不新增固定色。 */
 .stats-sheet { border-top: 1px solid var(--border); border-radius: 24px 24px 0 0; box-shadow: 0 -18px 42px color-mix(in srgb, var(--bg) 42%, transparent); }
 .stats-kicker { color: var(--fg-dim); font-size: 9px; letter-spacing: .28em; text-transform: uppercase; }
-.stats-close { min-width: 40px; min-height: 40px; display: grid; place-items: center; }
+.stats-close { min-width: 44px; min-height: 44px; display: grid; place-items: center; }
+.stats-close:focus-visible, .stats-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.stats-tab { min-height: 44px; }
 .stats-tab { position: relative; padding: 7px 0; color: var(--fg-dim); }
 .stats-tab.is-active { color: var(--fg); }
 .stats-tab.is-active::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; border-radius: 2px; background: var(--accent); }

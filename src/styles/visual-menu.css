@@ -32,6 +32,20 @@
 .menu-ai { padding-top: 20px; }
 .menu-ai-row { min-height: 59px; padding: 12px 0; }
 
+/* 放大文字或瀏覽器縮放至 200% 時，長文可換行、不把按鈕撐出畫面。 */
+.menu-shell button, .result-shell button, .quiz-shell button, .bank-sheet button,
+.menu-shell [class*="text-"], .result-shell [class*="text-"], .quiz-shell [class*="text-"] {
+  overflow-wrap: anywhere;
+}
+.menu-shell button, .result-shell button, .quiz-shell button, .bank-sheet button {
+  white-space: normal;
+}
+.quiz-option { min-height: 56px; }
+.quiz-option > span:last-child { min-width: 0; }
+.quiz-first-tip { margin: 0 0 16px; color: var(--fg-dim); font-size: 13px; line-height: 1.5; }
+.bank-action, .bank-row-main, .bank-picked-cta { min-width: 0; }
+.bank-row, .bank-action, .bank-picked-cta { overflow-wrap: anywhere; }
+
 /* 結算頁共用同一套收斂後的比例。 */
 .result-shell { gap: 0; }
 .result-hero { padding: 24px 20px; border-radius: var(--echo-radius-card); }

@@ -373,6 +373,7 @@ body {
 }
 .quiz-option:hover { border-color: color-mix(in srgb, var(--accent) 48%, var(--border)); }
 .quiz-option:focus-visible, .quiz-primary-action:focus-visible, .result-primary:focus-visible, .result-secondary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.quiz-shell button, .result-shell button { min-height: 44px; }
 .quiz-option:active { transform: translateY(1px) scale(.99); }
 .quiz-option-index {
   display: grid; width: 27px; height: 27px; flex: 0 0 27px; place-items: center; border: 1px solid var(--border);

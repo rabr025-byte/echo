@@ -7,6 +7,8 @@ import { Trophy, CheckCircle2 } from 'lucide-react';
 interface Props {
   game: ReturnType<typeof useGame>;
   onReplay: () => void;
+  mistakeCount: number;
+  onPracticeMistakes: () => void;
   onMenu: () => void;
 }
 
@@ -23,7 +25,7 @@ function grade(pct: number, survived: boolean) {
 
 interface Particle { id: number; dx: number; dy: number; delay: number; }
 
-export const Result = ({ game, onReplay, onMenu }: Props) => {
+export const Result = ({ game, onReplay, mistakeCount, onPracticeMistakes, onMenu }: Props) => {
   const { score, questions, points, timer, hp, newRecord, dailyAllDone } = game;
   const total = questions.length;
   const pct = total > 0 ? Math.round((score / total) * 100) : 0;
@@ -70,14 +72,14 @@ export const Result = ({ game, onReplay, onMenu }: Props) => {
           <div className="result-badge mt-3 inline-block rounded-full font-black tracking-widest animate-pop"
             style={{ background: 'color-mix(in srgb, var(--combo) 15%, transparent)', color: 'var(--combo)',
               border: '1px solid color-mix(in srgb, var(--combo) 50%, transparent)' }}>
-            <span className="flex items-center gap-1.5"><Trophy size={18} strokeWidth={1.8} /> 新紀錄!超越了上次的自己</span>
+            <span className="flex items-center gap-1.5"><Trophy aria-hidden="true" size={18} strokeWidth={1.8} /> 新紀錄!超越了上次的自己</span>
           </div>
         )}
         {dailyAllDone && (
           <div className="result-badge mt-2 inline-block rounded-full font-black tracking-widest animate-pop"
             style={{ background: 'color-mix(in srgb, var(--good) 15%, transparent)', color: 'var(--good)',
               border: '1px solid color-mix(in srgb, var(--good) 50%, transparent)' }}>
-            <span className="flex items-center gap-1.5"><CheckCircle2 size={18} strokeWidth={1.8} /> 今日任務全部完成!</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 aria-hidden="true" size={18} strokeWidth={1.8} /> 今日任務全部完成!</span>
           </div>
         )}
       </div>
@@ -96,8 +98,14 @@ export const Result = ({ game, onReplay, onMenu }: Props) => {
       <div className="result-actions w-full flex flex-col gap-3">
         <button onClick={onReplay} data-testid="result-replay"
           className="result-primary w-full bg-accent text-accent-fg font-bold tracking-widest active:scale-[0.98] transition-all">
-          再來一次
+          再來一局
         </button>
+        {mistakeCount > 0 && (
+          <button onClick={onPracticeMistakes} data-testid="result-mistakes"
+            className="result-secondary w-full border border-theme-border text-fg/70 font-bold tracking-widest active:scale-[0.98] transition-all">
+            練錯題（{mistakeCount}）
+          </button>
+        )}
         <button onClick={onMenu} data-testid="result-menu"
           className="result-secondary w-full border border-theme-border text-fg/70 font-bold tracking-widest active:scale-[0.98] transition-all">
           回選單
